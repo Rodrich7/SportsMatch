@@ -1,6 +1,8 @@
 package com.sportsmatch.domain.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class EncuentroDeportivo {
@@ -13,6 +15,7 @@ public class EncuentroDeportivo {
     private int cupoMaximo;
     private String organizador;
     private EstadoEncuentro estado;
+    private final List<String> participantes = new ArrayList<>();
 
     public EncuentroDeportivo(Long id, String deporte, LocalDateTime fechaHora, String cancha,
                               int cupoMinimo, int cupoMaximo, String organizador) {
@@ -70,6 +73,24 @@ public class EncuentroDeportivo {
 
     public String getOrganizador() {
         return organizador;
+    }
+
+    public List<String> getParticipantes() {
+        return List.copyOf(participantes);
+    }
+
+    public void inscribirParticipante(String participante) {
+        String nombre = validarTexto(participante, "El nombre del participante es obligatorio");
+        if (estado != EstadoEncuentro.ABIERTO) {
+            throw new IllegalStateException("Las inscripciones deben estar ABIERTAS");
+        }
+        if (participantes.contains(nombre)) {
+            throw new IllegalArgumentException("El participante ya está inscrito");
+        }
+        if (participantes.size() >= cupoMaximo) {
+            throw new IllegalStateException("No hay cupos disponibles");
+        }
+        participantes.add(nombre);
     }
 
     public void abrirInscripciones() {

@@ -5,6 +5,7 @@ import com.sportsmatch.application.usecase.CerrarInscripciones;
 import com.sportsmatch.application.usecase.ConfirmarEncuentro;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
 import com.sportsmatch.application.usecase.IniciarEncuentro;
+import com.sportsmatch.application.usecase.InscribirParticipante;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
 import com.sportsmatch.domain.model.EstadoEncuentro;
 import com.sportsmatch.infrastructure.web.CrearEncuentroRequest;
@@ -61,6 +62,27 @@ class SportsMatchApplicationTests {
         EncuentroDeportivo encuentro = crearEncuentro(3L);
 
         assertThrows(IllegalStateException.class, () -> new ConfirmarEncuentro().ejecutar(encuentro));
+    }
+
+    @Test
+    void inscribeParticipanteCuandoLasInscripcionesEstanAbiertas() {
+        EncuentroDeportivo encuentro = crearEncuentro(5L);
+        new AbrirInscripciones().ejecutar(encuentro);
+
+        new InscribirParticipante().ejecutar(encuentro, "Luis");
+
+        assertEquals(1, encuentro.getParticipantes().size());
+        assertEquals("Luis", encuentro.getParticipantes().getFirst());
+    }
+
+    @Test
+    void noPermiteInscribirAlMismoParticipanteDosVeces() {
+        EncuentroDeportivo encuentro = crearEncuentro(6L);
+        new AbrirInscripciones().ejecutar(encuentro);
+        new InscribirParticipante().ejecutar(encuentro, "Luis");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> new InscribirParticipante().ejecutar(encuentro, "Luis"));
     }
 
     @Test

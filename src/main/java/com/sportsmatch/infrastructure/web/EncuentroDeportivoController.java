@@ -7,6 +7,7 @@ import com.sportsmatch.application.usecase.ConfirmarEncuentro;
 import com.sportsmatch.application.usecase.CrearEncuentroDeportivo;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
 import com.sportsmatch.application.usecase.IniciarEncuentro;
+import com.sportsmatch.application.usecase.InscribirParticipante;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,7 @@ public class EncuentroDeportivoController {
     private final IniciarEncuentro iniciarEncuentro = new IniciarEncuentro();
     private final FinalizarEncuentro finalizarEncuentro = new FinalizarEncuentro();
     private final CancelarEncuentro cancelarEncuentro = new CancelarEncuentro();
+    private final InscribirParticipante inscribirParticipante = new InscribirParticipante();
 
     @PostMapping
     public ResponseEntity<EncuentroDeportivo> crear(@RequestBody CrearEncuentroRequest solicitud) {
@@ -83,6 +85,14 @@ public class EncuentroDeportivoController {
     @PostMapping("/{id}/cancelar")
     public EncuentroDeportivo cancelar(@PathVariable Long id) {
         return actualizar(id, cancelarEncuentro::ejecutar);
+    }
+
+    @PostMapping("/{id}/participantes")
+    public EncuentroDeportivo inscribirParticipante(@PathVariable Long id,
+                                                    @RequestBody InscribirParticipanteRequest solicitud) {
+        EncuentroDeportivo encuentro = buscarEncuentro(id);
+        inscribirParticipante.ejecutar(encuentro, solicitud.participante());
+        return encuentro;
     }
 
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
