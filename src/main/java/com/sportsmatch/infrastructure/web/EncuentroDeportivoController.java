@@ -1,6 +1,8 @@
 package com.sportsmatch.infrastructure.web;
 
 import com.sportsmatch.application.usecase.AbrirInscripciones;
+import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
+import com.sportsmatch.application.queries.ObtenerEncuentroPorIdQuery;
 import com.sportsmatch.application.usecase.CancelarEncuentro;
 import com.sportsmatch.application.usecase.CerrarInscripciones;
 import com.sportsmatch.application.usecase.ConfirmarEncuentro;
@@ -29,6 +31,8 @@ import java.util.function.Consumer;
 public class EncuentroDeportivoController {
 
     private final Map<Long, EncuentroDeportivo> encuentros = new ConcurrentHashMap<>();
+    private final ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler =
+            new ObtenerEncuentroPorIdHandler(encuentros);
     private final CrearEncuentroDeportivo crearEncuentroDeportivo = new CrearEncuentroDeportivo();
     private final AbrirInscripciones abrirInscripciones = new AbrirInscripciones();
     private final CerrarInscripciones cerrarInscripciones = new CerrarInscripciones();
@@ -107,10 +111,7 @@ public class EncuentroDeportivoController {
     }
 
     private EncuentroDeportivo buscarEncuentro(Long id) {
-        EncuentroDeportivo encuentro = encuentros.get(id);
-        if (encuentro == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado");
-        }
-        return encuentro;
+        return obtenerEncuentroPorIdHandler.manejar(new ObtenerEncuentroPorIdQuery(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 }
