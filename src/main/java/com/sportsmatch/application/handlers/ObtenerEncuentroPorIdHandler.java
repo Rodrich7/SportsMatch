@@ -1,20 +1,22 @@
 package com.sportsmatch.application.handlers;
 
+import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
 import com.sportsmatch.application.queries.ObtenerEncuentroPorIdQuery;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
+import org.springframework.stereotype.Service;
 
-import java.util.Map;
 import java.util.Optional;
 
+@Service
 public class ObtenerEncuentroPorIdHandler {
 
-    private final Map<Long, EncuentroDeportivo> encuentros;
+    private final EncuentroDeportivoRepository encuentros;
 
-    public ObtenerEncuentroPorIdHandler(Map<Long, EncuentroDeportivo> encuentros) {
+    public ObtenerEncuentroPorIdHandler(EncuentroDeportivoRepository encuentros) {
         this.encuentros = encuentros;
     }
 
     public Optional<EncuentroDeportivo> manejar(ObtenerEncuentroPorIdQuery consulta) {
-        return Optional.ofNullable(encuentros.get(consulta.encuentroId()));
+        return encuentros.buscarPorId(consulta.encuentroId());
     }
 }

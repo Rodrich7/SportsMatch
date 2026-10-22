@@ -2,6 +2,7 @@ package com.sportsmatch.infrastructure.web;
 
 import com.sportsmatch.application.usecase.AbrirInscripciones;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
+import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
 import com.sportsmatch.application.queries.ObtenerEncuentroPorIdQuery;
 import com.sportsmatch.application.usecase.CancelarEncuentro;
 import com.sportsmatch.application.usecase.CerrarInscripciones;
@@ -23,16 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 @RestController
 @RequestMapping("/api/encuentros")
 public class EncuentroDeportivoController {
 
-    private final Map<Long, EncuentroDeportivo> encuentros = new ConcurrentHashMap<>();
-    private final ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler =
-            new ObtenerEncuentroPorIdHandler(encuentros);
+    private final EncuentroDeportivoRepository encuentros;
+    private final ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler;
     private final CrearEncuentroDeportivo crearEncuentroDeportivo = new CrearEncuentroDeportivo();
     private final AbrirInscripciones abrirInscripciones = new AbrirInscripciones();
     private final CerrarInscripciones cerrarInscripciones = new CerrarInscripciones();
@@ -42,6 +41,12 @@ public class EncuentroDeportivoController {
     private final CancelarEncuentro cancelarEncuentro = new CancelarEncuentro();
     private final InscribirParticipante inscribirParticipante = new InscribirParticipante();
 
+    public EncuentroDeportivoController(EncuentroDeportivoRepository encuentros,
+                                        ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler) {
+        this.encuentros = encuentros;
+        this.obtenerEncuentroPorIdHandler = obtenerEncuentroPorIdHandler;
+    }
+
     @PostMapping
     public ResponseEntity<EncuentroDeportivo> crear(@RequestBody CrearEncuentroRequest solicitud) {
         EncuentroDeportivo encuentro = crearEncuentroDeportivo.ejecutar(
@@ -49,7 +54,7 @@ public class EncuentroDeportivoController {
                 solicitud.cupoMinimo(), solicitud.cupoMaximo(), solicitud.organizador()
         );
 
-        if (encuentros.putIfAbsent(encuentro.getId(), encuentro) != null) {
+        if (!encuentros.guardarSiNoExiste(encuentro)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un encuentro con ese id");
         }
 
