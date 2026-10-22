@@ -6,8 +6,10 @@ import com.sportsmatch.application.usecase.ConfirmarEncuentro;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
 import com.sportsmatch.application.usecase.IniciarEncuentro;
 import com.sportsmatch.application.usecase.InscribirParticipante;
+import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
 import com.sportsmatch.domain.model.EstadoEncuentro;
+import com.sportsmatch.infrastructure.persistence.InMemoryEncuentroDeportivoRepository;
 import com.sportsmatch.infrastructure.web.CrearEncuentroRequest;
 import com.sportsmatch.infrastructure.web.EncuentroDeportivoController;
 import org.junit.jupiter.api.Test;
@@ -87,7 +89,10 @@ class SportsMatchApplicationTests {
 
     @Test
     void creaYActualizaUnEncuentroMedianteLaApi() {
-        EncuentroDeportivoController controller = new EncuentroDeportivoController();
+        InMemoryEncuentroDeportivoRepository repository = new InMemoryEncuentroDeportivoRepository();
+        EncuentroDeportivoController controller = new EncuentroDeportivoController(
+                repository, new ObtenerEncuentroPorIdHandler(repository)
+        );
 
         ResponseEntity<EncuentroDeportivo> respuesta = controller.crear(
                 new CrearEncuentroRequest(4L, "Vóley", FECHA_ENCUENTRO, "Cancha Norte", 8, 12, "Carla")
