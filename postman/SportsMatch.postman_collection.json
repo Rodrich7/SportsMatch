@@ -285,7 +285,7 @@
         "script": {
           "type": "text/javascript",
           "exec": [
-            "pm.test('Responde HTTP 400 cuando falta el deporte', function () { pm.response.to.have.status(400); });"
+            "pm.test('Responde HTTP 400 con un error cuando falta el deporte', function () { pm.response.to.have.status(400); pm.expect(pm.response.json().error).to.be.a('string').and.not.empty; });"
           ]
         }
       }],
