@@ -1,4 +1,4 @@
-package com.sportsmatch.infrastructure.web;
+package com.sportsmatch.presentation.web;
 
 import com.sportsmatch.application.usecase.AbrirInscripciones;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
