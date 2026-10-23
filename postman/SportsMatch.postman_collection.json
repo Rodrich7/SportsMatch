@@ -18,7 +18,6 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.collectionVariables.set('encuentroId', String(Date.now()));"
             ]
           }
         },
@@ -27,7 +26,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Responde HTTP 201 y crea un encuentro en BORRADOR', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().estado).to.eql('BORRADOR'); });"
+              "pm.test('Responde HTTP 201 y crea un encuentro en BORRADOR con ID generado', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().estado).to.eql('BORRADOR'); pm.expect(pm.response.json().id).to.be.a('number'); pm.collectionVariables.set('encuentroId', String(pm.response.json().id)); });"
             ]
           }
         }
@@ -37,7 +36,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": {{encuentroId}},\n  \"deporte\": \"Fútbol\",\n  \"fechaHora\": \"2099-05-10T18:00:00\",\n  \"cancha\": \"Cancha Postman\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 2,\n  \"organizador\": \"Prueba Postman\"\n}",
+          "raw": "{\n  \"deporte\": \"Fútbol\",\n  \"fechaHora\": \"2099-05-10T18:00:00\",\n  \"cancha\": \"Cancha Postman\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 2,\n  \"organizador\": \"Prueba Postman\"\n}",
           "options": { "raw": { "language": "json" } }
         },
         "url": "{{baseUrl}}/api/encuentros"
@@ -207,7 +206,6 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.collectionVariables.set('cancelEncounterId', String(Date.now() + 1));"
             ]
           }
         },
@@ -216,7 +214,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Crea un encuentro en BORRADOR para probar cancelación', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().estado).to.eql('BORRADOR'); });"
+              "pm.test('Crea un encuentro en BORRADOR para probar cancelación', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().estado).to.eql('BORRADOR'); pm.collectionVariables.set('cancelEncounterId', String(pm.response.json().id)); });"
             ]
           }
         }
@@ -226,7 +224,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": {{cancelEncounterId}},\n  \"deporte\": \"Vóley\",\n  \"fechaHora\": \"2099-06-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Cancelación\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 4,\n  \"organizador\": \"Prueba Postman Cancelación\"\n}",
+          "raw": "{\n  \"deporte\": \"Vóley\",\n  \"fechaHora\": \"2099-06-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Cancelación\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 4,\n  \"organizador\": \"Prueba Postman Cancelación\"\n}",
           "options": { "raw": { "language": "json" } }
         },
         "url": "{{baseUrl}}/api/encuentros"
@@ -281,13 +279,13 @@
       }
     },
     {
-      "name": "15. Rechazar ID de encuentro duplicado",
+      "name": "15. Rechazar encuentro sin deporte",
       "event": [{
         "listen": "test",
         "script": {
           "type": "text/javascript",
           "exec": [
-            "pm.test('Responde HTTP 409 cuando el ID ya existe', function () { pm.response.to.have.status(409); });"
+            "pm.test('Responde HTTP 400 cuando falta el deporte', function () { pm.response.to.have.status(400); });"
           ]
         }
       }],
@@ -296,7 +294,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": {{encuentroId}},\n  \"deporte\": \"Fútbol\",\n  \"fechaHora\": \"2099-05-10T18:00:00\",\n  \"cancha\": \"Cancha Postman\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 2,\n  \"organizador\": \"Prueba Postman\"\n}",
+          "raw": "{\n  \"deporte\": \"\",\n  \"fechaHora\": \"2099-05-10T18:00:00\",\n  \"cancha\": \"Cancha Postman\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 2,\n  \"organizador\": \"Prueba Postman\"\n}",
           "options": { "raw": { "language": "json" } }
         },
         "url": "{{baseUrl}}/api/encuentros"
@@ -326,7 +324,6 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.collectionVariables.set('invalidCapacityId', String(Date.now() + 2));"
             ]
           }
         },
@@ -345,7 +342,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": {{invalidCapacityId}},\n  \"deporte\": \"Fútbol\",\n  \"fechaHora\": \"2099-07-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Cupos\",\n  \"cupoMinimo\": 3,\n  \"cupoMaximo\": 2,\n  \"organizador\": \"Prueba Postman Cupos\"\n}",
+          "raw": "{\n  \"deporte\": \"Fútbol\",\n  \"fechaHora\": \"2099-07-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Cupos\",\n  \"cupoMinimo\": 3,\n  \"cupoMaximo\": 2,\n  \"organizador\": \"Prueba Postman Cupos\"\n}",
           "options": { "raw": { "language": "json" } }
         },
         "url": "{{baseUrl}}/api/encuentros"
@@ -359,7 +356,6 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.collectionVariables.set('draftSignupId', String(Date.now() + 3));"
             ]
           }
         },
@@ -368,7 +364,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Crea el encuentro de prueba en BORRADOR', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().estado).to.eql('BORRADOR'); });"
+              "pm.test('Crea el encuentro de prueba en BORRADOR', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().estado).to.eql('BORRADOR'); pm.collectionVariables.set('draftSignupId', String(pm.response.json().id)); });"
             ]
           }
         }
@@ -378,7 +374,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": {{draftSignupId}},\n  \"deporte\": \"Básquet\",\n  \"fechaHora\": \"2099-08-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Estado\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 3,\n  \"organizador\": \"Prueba Postman Estado\"\n}",
+          "raw": "{\n  \"deporte\": \"Básquet\",\n  \"fechaHora\": \"2099-08-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Estado\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 3,\n  \"organizador\": \"Prueba Postman Estado\"\n}",
           "options": { "raw": { "language": "json" } }
         },
         "url": "{{baseUrl}}/api/encuentros"
@@ -414,7 +410,6 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.collectionVariables.set('capacityTestId', String(Date.now() + 4));"
             ]
           }
         },
@@ -423,7 +418,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Crea el encuentro con cupo máximo uno', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().cupoMaximo).to.eql(1); });"
+              "pm.test('Crea el encuentro con cupo máximo uno', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().cupoMaximo).to.eql(1); pm.collectionVariables.set('capacityTestId', String(pm.response.json().id)); });"
             ]
           }
         }
@@ -433,7 +428,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": {{capacityTestId}},\n  \"deporte\": \"Tenis\",\n  \"fechaHora\": \"2099-09-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Capacidad\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 1,\n  \"organizador\": \"Prueba Postman Capacidad\"\n}",
+          "raw": "{\n  \"deporte\": \"Tenis\",\n  \"fechaHora\": \"2099-09-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Capacidad\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 1,\n  \"organizador\": \"Prueba Postman Capacidad\"\n}",
           "options": { "raw": { "language": "json" } }
         },
         "url": "{{baseUrl}}/api/encuentros"

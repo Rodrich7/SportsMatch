@@ -1,0 +1,39 @@
+{
+  "info": {
+    "_postman_id": "e4509ca5-7a0a-42f0-a310-9dbb49d47c5c",
+    "name": "SportsMatch - creación manual",
+    "description": "Plantilla para crear un encuentro con tus propios datos. Completa deporte, fechaHora, cancha, cupoMinimo, cupoMaximo y organizador en Body antes de pulsar Send. El backend genera el id automáticamente como llave primaria. fechaHora debe tener formato yyyy-MM-ddTHH:mm:ss; ambos cupos deben ser positivos y el mínimo no debe superar el máximo.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" }
+  ],
+  "item": [
+    {
+      "name": "Crear encuentro con mis datos",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deporte\": \"\",\n  \"fechaHora\": \"\",\n  \"cancha\": \"\",\n  \"cupoMinimo\": 0,\n  \"cupoMaximo\": 0,\n  \"organizador\": \"\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/encuentros"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('El encuentro con mis datos se crea correctamente', function () { pm.response.to.have.status(201); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
