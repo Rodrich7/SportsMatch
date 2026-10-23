@@ -9,7 +9,7 @@ import com.sportsmatch.application.usecase.InscribirParticipante;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
 import com.sportsmatch.domain.model.EstadoEncuentro;
-import com.sportsmatch.infrastructure.persistence.InMemoryEncuentroDeportivoRepository;
+import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
 import com.sportsmatch.presentation.web.CrearEncuentroRequest;
 import com.sportsmatch.presentation.web.EncuentroDeportivoController;
 import org.junit.jupiter.api.Test;
@@ -18,6 +18,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -89,7 +93,7 @@ class SportsMatchApplicationTests {
 
     @Test
     void creaYActualizaUnEncuentroMedianteLaApi() {
-        InMemoryEncuentroDeportivoRepository repository = new InMemoryEncuentroDeportivoRepository();
+        TestEncuentroRepository repository = new TestEncuentroRepository();
         EncuentroDeportivoController controller = new EncuentroDeportivoController(
                 repository, new ObtenerEncuentroPorIdHandler(repository)
         );
@@ -108,5 +112,30 @@ class SportsMatchApplicationTests {
 
     private EncuentroDeportivo crearEncuentro(Long id) {
         return new EncuentroDeportivo(id, "Fútbol", FECHA_ENCUENTRO, "Cancha Central", 10, 14, "Ana");
+    }
+
+    private static class TestEncuentroRepository implements EncuentroDeportivoRepository {
+        private final AtomicLong ids = new AtomicLong(1);
+        private final Map<Long, EncuentroDeportivo> encuentros = new ConcurrentHashMap<>();
+
+        @Override
+        public Optional<EncuentroDeportivo> buscarPorId(Long id) {
+            return Optional.ofNullable(encuentros.get(id));
+        }
+
+        @Override
+        public EncuentroDeportivo guardarNuevo(EncuentroDeportivo encuentro) {
+            EncuentroDeportivo asignado = EncuentroDeportivo.restaurar(ids.getAndIncrement(),
+                    encuentro.getDeporte(), encuentro.getFechaHora(), encuentro.getCancha(),
+                    encuentro.getCupoMinimo(), encuentro.getCupoMaximo(), encuentro.getOrganizador(),
+                    encuentro.getEstado(), encuentro.getParticipantes());
+            encuentros.put(asignado.getId(), asignado);
+            return asignado;
+        }
+
+        @Override
+        public void guardar(EncuentroDeportivo encuentro) {
+            encuentros.put(encuentro.getId(), encuentro);
+        }
     }
 }
