@@ -95,14 +95,15 @@ class SportsMatchApplicationTests {
         );
 
         ResponseEntity<EncuentroDeportivo> respuesta = controller.crear(
-                new CrearEncuentroRequest(4L, "Vóley", FECHA_ENCUENTRO, "Cancha Norte", 8, 12, "Carla")
+                new CrearEncuentroRequest("Vóley", FECHA_ENCUENTRO, "Cancha Norte", 8, 12, "Carla")
         );
-        controller.abrirInscripciones(4L);
-        controller.cerrarInscripciones(4L);
-        controller.confirmar(4L);
+        Long generatedId = respuesta.getBody().getId();
+        controller.abrirInscripciones(generatedId);
+        controller.cerrarInscripciones(generatedId);
+        controller.confirmar(generatedId);
 
         assertEquals(HttpStatus.CREATED, respuesta.getStatusCode());
-        assertEquals(EstadoEncuentro.CONFIRMADO, controller.obtener(4L).getEstado());
+        assertEquals(EstadoEncuentro.CONFIRMADO, controller.obtener(generatedId).getEstado());
     }
 
     private EncuentroDeportivo crearEncuentro(Long id) {

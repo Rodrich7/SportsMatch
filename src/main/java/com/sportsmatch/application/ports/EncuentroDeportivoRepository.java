@@ -8,5 +8,7 @@ public interface EncuentroDeportivoRepository {
 
     Optional<EncuentroDeportivo> buscarPorId(Long id);
 
-    boolean guardarSiNoExiste(EncuentroDeportivo encuentro);
+    EncuentroDeportivo guardarNuevo(EncuentroDeportivo encuentro);
+
+    void guardar(EncuentroDeportivo encuentro);
 }

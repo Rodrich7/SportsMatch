@@ -19,7 +19,7 @@ public class EncuentroDeportivo {
 
     public EncuentroDeportivo(Long id, String deporte, LocalDateTime fechaHora, String cancha,
                               int cupoMinimo, int cupoMaximo, String organizador) {
-        this.id = Objects.requireNonNull(id, "El id del encuentro es obligatorio");
+        this.id = id;
         this.deporte = validarTexto(deporte, "El deporte es obligatorio");
         this.fechaHora = Objects.requireNonNull(fechaHora, "La fecha y hora son obligatorias");
         this.cancha = validarTexto(cancha, "La cancha es obligatoria");
@@ -28,6 +28,16 @@ public class EncuentroDeportivo {
         this.cupoMaximo = cupoMaximo;
         this.organizador = validarTexto(organizador, "El organizador es obligatorio");
         this.estado = EstadoEncuentro.BORRADOR;
+    }
+
+    public static EncuentroDeportivo restaurar(Long id, String deporte, LocalDateTime fechaHora, String cancha,
+                                               int cupoMinimo, int cupoMaximo, String organizador,
+                                               EstadoEncuentro estado, List<String> participantes) {
+        EncuentroDeportivo encuentro = new EncuentroDeportivo(
+                id, deporte, fechaHora, cancha, cupoMinimo, cupoMaximo, organizador);
+        encuentro.estado = Objects.requireNonNull(estado, "El estado es obligatorio");
+        encuentro.participantes.addAll(participantes);
+        return encuentro;
     }
 
     private String validarTexto(String valor, String mensajeError) {

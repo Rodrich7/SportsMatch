@@ -50,15 +50,10 @@ public class EncuentroDeportivoController {
     @PostMapping
     public ResponseEntity<EncuentroDeportivo> crear(@RequestBody CrearEncuentroRequest solicitud) {
         EncuentroDeportivo encuentro = crearEncuentroDeportivo.ejecutar(
-                solicitud.id(), solicitud.deporte(), solicitud.fechaHora(), solicitud.cancha(),
+                solicitud.deporte(), solicitud.fechaHora(), solicitud.cancha(),
                 solicitud.cupoMinimo(), solicitud.cupoMaximo(), solicitud.organizador()
         );
-
-        if (!encuentros.guardarSiNoExiste(encuentro)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un encuentro con ese id");
-        }
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(encuentro);
+        return ResponseEntity.status(HttpStatus.CREATED).body(encuentros.guardarNuevo(encuentro));
     }
 
     @GetMapping("/{id}")
@@ -101,6 +96,7 @@ public class EncuentroDeportivoController {
                                                     @RequestBody InscribirParticipanteRequest solicitud) {
         EncuentroDeportivo encuentro = buscarEncuentro(id);
         inscribirParticipante.ejecutar(encuentro, solicitud.participante());
+        encuentros.guardar(encuentro);
         return encuentro;
     }
 
@@ -112,6 +108,7 @@ public class EncuentroDeportivoController {
     private EncuentroDeportivo actualizar(Long id, Consumer<EncuentroDeportivo> accion) {
         EncuentroDeportivo encuentro = buscarEncuentro(id);
         accion.accept(encuentro);
+        encuentros.guardar(encuentro);
         return encuentro;
     }
 

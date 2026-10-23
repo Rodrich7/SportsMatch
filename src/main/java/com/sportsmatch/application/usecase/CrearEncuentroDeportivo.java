@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 
 public class CrearEncuentroDeportivo {
 
-    public EncuentroDeportivo ejecutar(Long id, String deporte, LocalDateTime fechaHora, String cancha,
+    public EncuentroDeportivo ejecutar(String deporte, LocalDateTime fechaHora, String cancha,
                                        int cupoMinimo, int cupoMaximo, String organizador) {
-        return new EncuentroDeportivo(id, deporte, fechaHora, cancha, cupoMinimo, cupoMaximo, organizador);
+        return new EncuentroDeportivo(null, deporte, fechaHora, cancha, cupoMinimo, cupoMaximo, organizador);
     }
 }
