@@ -118,6 +118,167 @@
         },
         "url": "{{baseUrl}}/api/encuentros/{{encuentroId}}/participantes"
       }
+    },
+    {
+      "name": "6. Cerrar inscripciones",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 200 y cambia a CERRADO', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().estado).to.eql('CERRADO'); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/encuentros/{{encuentroId}}/cerrar-inscripciones"
+      }
+    },
+    {
+      "name": "7. Confirmar encuentro",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 200 y cambia a CONFIRMADO', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().estado).to.eql('CONFIRMADO'); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/encuentros/{{encuentroId}}/confirmar"
+      }
+    },
+    {
+      "name": "8. Iniciar encuentro",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 200 y cambia a EN_JUEGO', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().estado).to.eql('EN_JUEGO'); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/encuentros/{{encuentroId}}/iniciar"
+      }
+    },
+    {
+      "name": "9. Finalizar encuentro",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 200 y cambia a FINALIZADO', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().estado).to.eql('FINALIZADO'); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/encuentros/{{encuentroId}}/finalizar"
+      }
+    },
+    {
+      "name": "10. Rechazar cancelación después de finalizar",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 400 y comunica que no puede cancelarse', function () { pm.response.to.have.status(400); pm.expect(pm.response.json().error).to.eql('El encuentro no puede ser cancelado'); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/encuentros/{{encuentroId}}/cancelar"
+      }
+    },
+    {
+      "name": "11. Crear encuentro para probar cancelación",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('cancelEncounterId', String(Date.now() + 1));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Crea un encuentro en BORRADOR para probar cancelación', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().estado).to.eql('BORRADOR'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{cancelEncounterId}},\n  \"deporte\": \"Vóley\",\n  \"fechaHora\": \"2099-06-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Cancelación\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 4,\n  \"organizador\": \"Prueba Postman Cancelación\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/encuentros"
+      }
+    },
+    {
+      "name": "12. Cancelar encuentro",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 200 y cambia a CANCELADO', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().estado).to.eql('CANCELADO'); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/encuentros/{{cancelEncounterId}}/cancelar"
+      }
+    },
+    {
+      "name": "13. Rechazar cancelación duplicada",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 400 si el encuentro ya está CANCELADO', function () { pm.response.to.have.status(400); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/encuentros/{{cancelEncounterId}}/cancelar"
+      }
+    },
+    {
+      "name": "14. Consultar encuentro cancelado",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 200 y confirma estado CANCELADO', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().estado).to.eql('CANCELADO'); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/encuentros/{{cancelEncounterId}}"
+      }
     }
   ]
 }
