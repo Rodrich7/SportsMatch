@@ -1,4 +1,4 @@
-package com.sportsmatch.infrastructure.web;
+package com.sportsmatch.presentation.web;
 
 import java.time.LocalDateTime;
 
