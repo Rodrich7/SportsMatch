@@ -279,6 +279,225 @@
         "method": "GET",
         "url": "{{baseUrl}}/api/encuentros/{{cancelEncounterId}}"
       }
+    },
+    {
+      "name": "15. Rechazar ID de encuentro duplicado",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 409 cuando el ID ya existe', function () { pm.response.to.have.status(409); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{encuentroId}},\n  \"deporte\": \"Fútbol\",\n  \"fechaHora\": \"2099-05-10T18:00:00\",\n  \"cancha\": \"Cancha Postman\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 2,\n  \"organizador\": \"Prueba Postman\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/encuentros"
+      }
+    },
+    {
+      "name": "16. Rechazar consulta de encuentro inexistente",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 404 para un ID inexistente', function () { pm.response.to.have.status(404); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/encuentros/9223372036854775807"
+      }
+    },
+    {
+      "name": "17. Rechazar cupo mínimo mayor al máximo",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('invalidCapacityId', String(Date.now() + 2));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde HTTP 400 si el mínimo supera al máximo', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{invalidCapacityId}},\n  \"deporte\": \"Fútbol\",\n  \"fechaHora\": \"2099-07-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Cupos\",\n  \"cupoMinimo\": 3,\n  \"cupoMaximo\": 2,\n  \"organizador\": \"Prueba Postman Cupos\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/encuentros"
+      }
+    },
+    {
+      "name": "18. Crear encuentro para validar estado de inscripción",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('draftSignupId', String(Date.now() + 3));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Crea el encuentro de prueba en BORRADOR', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().estado).to.eql('BORRADOR'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{draftSignupId}},\n  \"deporte\": \"Básquet\",\n  \"fechaHora\": \"2099-08-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Estado\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 3,\n  \"organizador\": \"Prueba Postman Estado\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/encuentros"
+      }
+    },
+    {
+      "name": "19. Rechazar inscripción en BORRADOR",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 400 porque las inscripciones no están abiertas', function () { pm.response.to.have.status(400); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"participante\": \"Participante Fuera de Estado\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/encuentros/{{draftSignupId}}/participantes"
+      }
+    },
+    {
+      "name": "20. Crear encuentro con cupo máximo uno",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('capacityTestId', String(Date.now() + 4));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Crea el encuentro con cupo máximo uno', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().cupoMaximo).to.eql(1); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": {{capacityTestId}},\n  \"deporte\": \"Tenis\",\n  \"fechaHora\": \"2099-09-10T18:00:00\",\n  \"cancha\": \"Cancha Postman Capacidad\",\n  \"cupoMinimo\": 1,\n  \"cupoMaximo\": 1,\n  \"organizador\": \"Prueba Postman Capacidad\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/encuentros"
+      }
+    },
+    {
+      "name": "21. Abrir inscripciones del encuentro con cupo uno",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Abre inscripciones para la prueba de capacidad', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().estado).to.eql('ABIERTO'); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/encuentros/{{capacityTestId}}/abrir-inscripciones"
+      }
+    },
+    {
+      "name": "22. Ocupar el único cupo",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Inscribe al primer participante', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().participantes).to.include('Primer Participante'); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"participante\": \"Primer Participante\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/encuentros/{{capacityTestId}}/participantes"
+      }
+    },
+    {
+      "name": "23. Rechazar inscripción cuando el encuentro está lleno",
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Responde HTTP 400 si se supera el cupo máximo', function () { pm.response.to.have.status(400); });"
+          ]
+        }
+      }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"participante\": \"Segundo Participante\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/encuentros/{{capacityTestId}}/participantes"
+      }
     }
   ]
 }
