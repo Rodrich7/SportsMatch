@@ -12,8 +12,11 @@ import com.sportsmatch.application.usecase.FinalizarEncuentro;
 import com.sportsmatch.application.usecase.IniciarEncuentro;
 import com.sportsmatch.application.usecase.InscribirParticipante;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,7 +51,7 @@ public class EncuentroDeportivoController {
     }
 
     @PostMapping
-    public ResponseEntity<EncuentroDeportivo> crear(@RequestBody CrearEncuentroRequest solicitud) {
+    public ResponseEntity<EncuentroDeportivo> crear(@Valid @RequestBody CrearEncuentroRequest solicitud) {
         EncuentroDeportivo encuentro = crearEncuentroDeportivo.ejecutar(
                 solicitud.deporte(), solicitud.fechaHora(), solicitud.cancha(),
                 solicitud.cupoMinimo(), solicitud.cupoMaximo(), solicitud.organizador()
@@ -103,6 +106,15 @@ public class EncuentroDeportivoController {
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
     public ResponseEntity<Map<String, String>> manejarReglaDeNegocio(RuntimeException exception) {
         return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> manejarSolicitudInvalida(MethodArgumentNotValidException exception) {
+        String mensaje = exception.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(FieldError::getDefaultMessage)
+                .orElse("Los datos del encuentro son obligatorios y deben ser válidos");
+        return ResponseEntity.badRequest().body(Map.of("error", mensaje));
     }
 
     private EncuentroDeportivo actualizar(Long id, Consumer<EncuentroDeportivo> accion) {
