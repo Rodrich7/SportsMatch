@@ -1,6 +1,7 @@
 package com.sportsmatch;
 
 import com.sportsmatch.application.usecase.AbrirInscripciones;
+import com.sportsmatch.application.handlers.CrearEncuentroHandler;
 import com.sportsmatch.application.usecase.CerrarInscripciones;
 import com.sportsmatch.application.usecase.ConfirmarEncuentro;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
@@ -95,7 +96,7 @@ class SportsMatchApplicationTests {
     void creaYActualizaUnEncuentroMedianteLaApi() {
         TestEncuentroRepository repository = new TestEncuentroRepository();
         EncuentroDeportivoController controller = new EncuentroDeportivoController(
-                repository, new ObtenerEncuentroPorIdHandler(repository)
+                repository, new CrearEncuentroHandler(repository), new ObtenerEncuentroPorIdHandler(repository)
         );
 
         ResponseEntity<EncuentroDeportivo> respuesta = controller.crear(

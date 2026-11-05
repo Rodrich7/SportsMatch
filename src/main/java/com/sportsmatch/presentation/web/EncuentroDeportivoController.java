@@ -1,13 +1,14 @@
 package com.sportsmatch.presentation.web;
 
 import com.sportsmatch.application.usecase.AbrirInscripciones;
+import com.sportsmatch.application.commands.CrearEncuentroCommand;
+import com.sportsmatch.application.handlers.CrearEncuentroHandler;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
 import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
 import com.sportsmatch.application.queries.ObtenerEncuentroPorIdQuery;
 import com.sportsmatch.application.usecase.CancelarEncuentro;
 import com.sportsmatch.application.usecase.CerrarInscripciones;
 import com.sportsmatch.application.usecase.ConfirmarEncuentro;
-import com.sportsmatch.application.usecase.CrearEncuentroDeportivo;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
 import com.sportsmatch.application.usecase.IniciarEncuentro;
 import com.sportsmatch.application.usecase.InscribirParticipante;
@@ -34,8 +35,8 @@ import java.util.function.Consumer;
 public class EncuentroDeportivoController {
 
     private final EncuentroDeportivoRepository encuentros;
+    private final CrearEncuentroHandler crearEncuentroHandler;
     private final ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler;
-    private final CrearEncuentroDeportivo crearEncuentroDeportivo = new CrearEncuentroDeportivo();
     private final AbrirInscripciones abrirInscripciones = new AbrirInscripciones();
     private final CerrarInscripciones cerrarInscripciones = new CerrarInscripciones();
     private final ConfirmarEncuentro confirmarEncuentro = new ConfirmarEncuentro();
@@ -45,18 +46,20 @@ public class EncuentroDeportivoController {
     private final InscribirParticipante inscribirParticipante = new InscribirParticipante();
 
     public EncuentroDeportivoController(EncuentroDeportivoRepository encuentros,
+                                        CrearEncuentroHandler crearEncuentroHandler,
                                         ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler) {
         this.encuentros = encuentros;
+        this.crearEncuentroHandler = crearEncuentroHandler;
         this.obtenerEncuentroPorIdHandler = obtenerEncuentroPorIdHandler;
     }
 
     @PostMapping
     public ResponseEntity<EncuentroDeportivo> crear(@Valid @RequestBody CrearEncuentroRequest solicitud) {
-        EncuentroDeportivo encuentro = crearEncuentroDeportivo.ejecutar(
+        EncuentroDeportivo encuentro = crearEncuentroHandler.manejar(new CrearEncuentroCommand(
                 solicitud.deporte(), solicitud.fechaHora(), solicitud.cancha(),
                 solicitud.cupoMinimo(), solicitud.cupoMaximo(), solicitud.organizador()
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(encuentros.guardarNuevo(encuentro));
+        ));
+        return ResponseEntity.status(HttpStatus.CREATED).body(encuentro);
     }
 
     @GetMapping("/{id}")
