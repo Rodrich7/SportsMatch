@@ -1,17 +1,18 @@
 package com.sportsmatch.presentation.web;
 
-import com.sportsmatch.application.usecase.AbrirInscripciones;
 import com.sportsmatch.application.commands.CrearEncuentroCommand;
+import com.sportsmatch.application.commands.InscribirParticipanteCommand;
 import com.sportsmatch.application.handlers.CrearEncuentroHandler;
+import com.sportsmatch.application.handlers.InscribirParticipanteHandler;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
 import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
 import com.sportsmatch.application.queries.ObtenerEncuentroPorIdQuery;
+import com.sportsmatch.application.usecase.AbrirInscripciones;
 import com.sportsmatch.application.usecase.CancelarEncuentro;
 import com.sportsmatch.application.usecase.CerrarInscripciones;
 import com.sportsmatch.application.usecase.ConfirmarEncuentro;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
 import com.sportsmatch.application.usecase.IniciarEncuentro;
-import com.sportsmatch.application.usecase.InscribirParticipante;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,7 @@ public class EncuentroDeportivoController {
 
     private final EncuentroDeportivoRepository encuentros;
     private final CrearEncuentroHandler crearEncuentroHandler;
+    private final InscribirParticipanteHandler inscribirParticipanteHandler;
     private final ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler;
     private final AbrirInscripciones abrirInscripciones = new AbrirInscripciones();
     private final CerrarInscripciones cerrarInscripciones = new CerrarInscripciones();
@@ -43,13 +45,14 @@ public class EncuentroDeportivoController {
     private final IniciarEncuentro iniciarEncuentro = new IniciarEncuentro();
     private final FinalizarEncuentro finalizarEncuentro = new FinalizarEncuentro();
     private final CancelarEncuentro cancelarEncuentro = new CancelarEncuentro();
-    private final InscribirParticipante inscribirParticipante = new InscribirParticipante();
 
     public EncuentroDeportivoController(EncuentroDeportivoRepository encuentros,
                                         CrearEncuentroHandler crearEncuentroHandler,
+                                        InscribirParticipanteHandler inscribirParticipanteHandler,
                                         ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler) {
         this.encuentros = encuentros;
         this.crearEncuentroHandler = crearEncuentroHandler;
+        this.inscribirParticipanteHandler = inscribirParticipanteHandler;
         this.obtenerEncuentroPorIdHandler = obtenerEncuentroPorIdHandler;
     }
 
@@ -100,10 +103,9 @@ public class EncuentroDeportivoController {
     @PostMapping("/{id}/participantes")
     public EncuentroDeportivo inscribirParticipante(@PathVariable Long id,
                                                     @RequestBody InscribirParticipanteRequest solicitud) {
-        EncuentroDeportivo encuentro = buscarEncuentro(id);
-        inscribirParticipante.ejecutar(encuentro, solicitud.participante());
-        encuentros.guardar(encuentro);
-        return encuentro;
+        return inscribirParticipanteHandler.manejar(
+                        new InscribirParticipanteCommand(id, solicitud.participante()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})

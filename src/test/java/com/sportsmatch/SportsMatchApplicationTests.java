@@ -1,13 +1,13 @@
 package com.sportsmatch;
 
-import com.sportsmatch.application.usecase.AbrirInscripciones;
 import com.sportsmatch.application.handlers.CrearEncuentroHandler;
+import com.sportsmatch.application.handlers.InscribirParticipanteHandler;
+import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
+import com.sportsmatch.application.usecase.AbrirInscripciones;
 import com.sportsmatch.application.usecase.CerrarInscripciones;
 import com.sportsmatch.application.usecase.ConfirmarEncuentro;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
 import com.sportsmatch.application.usecase.IniciarEncuentro;
-import com.sportsmatch.application.usecase.InscribirParticipante;
-import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
 import com.sportsmatch.domain.model.EstadoEncuentro;
 import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
@@ -76,7 +76,7 @@ class SportsMatchApplicationTests {
         EncuentroDeportivo encuentro = crearEncuentro(5L);
         new AbrirInscripciones().ejecutar(encuentro);
 
-        new InscribirParticipante().ejecutar(encuentro, "Luis");
+        encuentro.inscribirParticipante("Luis");
 
         assertEquals(1, encuentro.getParticipantes().size());
         assertEquals("Luis", encuentro.getParticipantes().getFirst());
@@ -86,17 +86,18 @@ class SportsMatchApplicationTests {
     void noPermiteInscribirAlMismoParticipanteDosVeces() {
         EncuentroDeportivo encuentro = crearEncuentro(6L);
         new AbrirInscripciones().ejecutar(encuentro);
-        new InscribirParticipante().ejecutar(encuentro, "Luis");
+        encuentro.inscribirParticipante("Luis");
 
         assertThrows(IllegalArgumentException.class,
-                () -> new InscribirParticipante().ejecutar(encuentro, "Luis"));
+                () -> encuentro.inscribirParticipante("Luis"));
     }
 
     @Test
     void creaYActualizaUnEncuentroMedianteLaApi() {
         TestEncuentroRepository repository = new TestEncuentroRepository();
         EncuentroDeportivoController controller = new EncuentroDeportivoController(
-                repository, new CrearEncuentroHandler(repository), new ObtenerEncuentroPorIdHandler(repository)
+                repository, new CrearEncuentroHandler(repository), new InscribirParticipanteHandler(repository),
+                new ObtenerEncuentroPorIdHandler(repository)
         );
 
         ResponseEntity<EncuentroDeportivo> respuesta = controller.crear(
