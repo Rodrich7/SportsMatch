@@ -4,7 +4,7 @@ import com.sportsmatch.application.handlers.CrearEncuentroHandler;
 import com.sportsmatch.application.handlers.AbrirInscripcionesHandler;
 import com.sportsmatch.application.handlers.InscribirParticipanteHandler;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
-import com.sportsmatch.application.usecase.CerrarInscripciones;
+import com.sportsmatch.application.handlers.CerrarInscripcionesHandler;
 import com.sportsmatch.application.usecase.ConfirmarEncuentro;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
 import com.sportsmatch.application.usecase.IniciarEncuentro;
@@ -56,7 +56,7 @@ class SportsMatchApplicationTests {
         EncuentroDeportivo encuentro = crearEncuentro(1L);
 
         encuentro.abrirInscripciones();
-        new CerrarInscripciones().ejecutar(encuentro);
+        encuentro.cerrarInscripciones();
         new ConfirmarEncuentro().ejecutar(encuentro);
         new IniciarEncuentro().ejecutar(encuentro);
         new FinalizarEncuentro().ejecutar(encuentro);
@@ -96,7 +96,8 @@ class SportsMatchApplicationTests {
     void creaYActualizaUnEncuentroMedianteLaApi() {
         TestEncuentroRepository repository = new TestEncuentroRepository();
         EncuentroDeportivoController controller = new EncuentroDeportivoController(
-                repository, new AbrirInscripcionesHandler(repository), new CrearEncuentroHandler(repository),
+                repository, new AbrirInscripcionesHandler(repository), new CerrarInscripcionesHandler(repository),
+                new CrearEncuentroHandler(repository),
                 new InscribirParticipanteHandler(repository),
                 new ObtenerEncuentroPorIdHandler(repository)
         );
