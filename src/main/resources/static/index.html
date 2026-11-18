@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0c1730">
+    <title>SportsMatch | Encuentros deportivos</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/" aria-label="SportsMatch, inicio">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>Sports<span class="brand-accent">Match</span></span>
+    </a>
+    <span class="api-status"><span class="status-dot"></span> API local</span>
+</header>
+
+<main class="page-shell">
+    <section class="intro">
+        <p class="eyebrow">ORGANIZA · JUEGA · CONECTA</p>
+        <h1>El próximo partido<br><span>empieza aquí.</span></h1>
+        <p class="intro-copy">Crea un encuentro deportivo o consulta uno existente por su ID.</p>
+    </section>
+
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+    <section class="workspace" aria-label="Administrar encuentros">
+        <article class="panel create-panel">
+            <div class="panel-heading">
+                <div class="step-icon">01</div>
+                <div>
+                    <p class="eyebrow">NUEVO PARTIDO</p>
+                    <h2>Crear encuentro</h2>
+                </div>
+            </div>
+            <form id="createForm" class="form-grid">
+                <label class="field field-wide">
+                    <span>Deporte</span>
+                    <input name="deporte" type="text" placeholder="Ej. Fútbol" maxlength="60" required>
+                </label>
+                <label class="field field-wide">
+                    <span>Fecha y hora</span>
+                    <input id="fechaHora" name="fechaHora" type="datetime-local" required>
+                </label>
+                <label class="field field-wide">
+                    <span>Cancha</span>
+                    <input name="cancha" type="text" placeholder="Ej. Cancha Central" maxlength="100" required>
+                </label>
+                <label class="field">
+                    <span>Cupo mínimo</span>
+                    <input name="cupoMinimo" type="number" min="1" value="2" required>
+                </label>
+                <label class="field">
+                    <span>Cupo máximo</span>
+                    <input name="cupoMaximo" type="number" min="1" value="10" required>
+                </label>
+                <label class="field field-wide">
+                    <span>Organizador</span>
+                    <input name="organizador" type="text" placeholder="Tu nombre" maxlength="100" required>
+                </label>
+                <button class="button button-primary field-wide" type="submit">
+                    Crear encuentro <span aria-hidden="true">→</span>
+                </button>
+            </form>
+        </article>
+
+        <article class="panel lookup-panel">
+            <div class="panel-heading">
+                <div class="step-icon step-icon-muted">02</div>
+                <div>
+                    <p class="eyebrow">ENCUENTRO EXISTENTE</p>
+                    <h2>Consultar por ID</h2>
+                </div>
+            </div>
+            <form id="lookupForm" class="lookup-form">
+                <label class="field">
+                    <span>ID del encuentro</span>
+                    <div class="lookup-control">
+                        <input id="encuentroId" name="id" type="number" min="1" placeholder="Ej. 1" required>
+                        <button class="button button-secondary" type="submit" aria-label="Buscar encuentro">Buscar</button>
+                    </div>
+                </label>
+            </form>
+
+            <div id="emptyState" class="empty-state">
+                <span class="empty-symbol" aria-hidden="true">⌕</span>
+                <p>Tu encuentro aparecerá aquí.</p>
+                <span>Créalo o busca uno usando su ID.</span>
+            </div>
+
+            <section id="encuentroCard" class="encounter-card" aria-live="polite" hidden>
+                <div class="encounter-topline">
+                    <span id="estado" class="state-badge"></span>
+                    <span class="encounter-id">ID <strong id="detalleId"></strong></span>
+                </div>
+                <h3 id="detalleDeporte"></h3>
+                <div class="details-grid">
+                    <div><span>Fecha y hora</span><strong id="detalleFecha"></strong></div>
+                    <div><span>Cancha</span><strong id="detalleCancha"></strong></div>
+                    <div><span>Organizador</span><strong id="detalleOrganizador"></strong></div>
+                    <div><span>Cupos</span><strong id="detalleCupos"></strong></div>
+                </div>
+                <div class="participants-row">
+                    <span>Participantes</span>
+                    <strong id="detalleParticipantes"></strong>
+                </div>
+            </section>
+        </article>
+    </section>
+
+    <footer>SportsMatch <span>·</span> Encuentros deportivos para compartir la cancha.</footer>
+</main>
+</body>
+</html>
