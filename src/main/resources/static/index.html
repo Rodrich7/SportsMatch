@@ -35,7 +35,7 @@
                     <h2>Crear encuentro</h2>
                 </div>
             </div>
-            <form id="createForm" class="form-grid">
+            <form id="createForm" class="form-grid" novalidate>
                 <label class="field field-wide">
                     <span>Deporte</span>
                     <input name="deporte" type="text" placeholder="Ej. Fútbol" maxlength="60" required>
@@ -74,11 +74,11 @@
                     <h2>Consultar por ID</h2>
                 </div>
             </div>
-            <form id="lookupForm" class="lookup-form">
+            <form id="lookupForm" class="lookup-form" novalidate>
                 <label class="field">
                     <span>ID del encuentro</span>
                     <div class="lookup-control">
-                        <input id="encuentroId" name="id" type="number" min="1" placeholder="Ej. 1" required>
+                        <input id="encuentroId" name="id" type="number" min="1" step="1" placeholder="Ej. 1" required>
                         <button class="button button-secondary" type="submit" aria-label="Buscar encuentro">Buscar</button>
                     </div>
                 </label>

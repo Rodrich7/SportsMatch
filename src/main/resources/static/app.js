@@ -20,6 +20,7 @@ function showNotice(message, isError = false) {
     notice.textContent = message;
     notice.classList.toggle("error", isError);
     notice.hidden = false;
+    notice.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function clearNotice() {
@@ -97,20 +98,41 @@ createForm.addEventListener("submit", async (event) => {
     clearNotice();
 
     const formData = new FormData(createForm);
+    const fechaHora = formData.get("fechaHora");
     const minimo = Number(formData.get("cupoMinimo"));
     const maximo = Number(formData.get("cupoMaximo"));
+
+    const deporte = formData.get("deporte").trim();
+    const cancha = formData.get("cancha").trim();
+    const organizador = formData.get("organizador").trim();
+
+    if (!deporte || !fechaHora || !cancha || !organizador || !minimo || !maximo) {
+        showNotice("Completa deporte, fecha y hora, cancha, cupos y organizador.", true);
+        createForm.querySelector(":invalid")?.focus();
+        return;
+    }
+    if (!fechaInput.checkValidity()) {
+        showNotice("La fecha y hora deben ser actuales o futuras.", true);
+        fechaInput.focus();
+        return;
+    }
+    if (!Number.isInteger(minimo) || !Number.isInteger(maximo) || minimo < 1 || maximo < 1) {
+        showNotice("Los cupos deben ser números enteros mayores que cero.", true);
+        createForm.elements.cupoMinimo.focus();
+        return;
+    }
     if (minimo > maximo) {
         showNotice("El cupo mínimo no puede superar al máximo.", true);
         return;
     }
 
     const payload = {
-        deporte: formData.get("deporte").trim(),
-        fechaHora: formData.get("fechaHora"),
-        cancha: formData.get("cancha").trim(),
+        deporte,
+        fechaHora,
+        cancha,
         cupoMinimo: minimo,
         cupoMaximo: maximo,
-        organizador: formData.get("organizador").trim()
+        organizador
     };
 
     setSubmitting(createForm, true, "Crear encuentro →");
@@ -133,14 +155,24 @@ lookupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearNotice();
     const id = lookupId.value.trim();
-    if (!id) return;
+    if (!id || !Number.isSafeInteger(Number(id)) || Number(id) < 1) {
+        showNotice("Escribe un ID entero mayor que cero.", true);
+        lookupId.focus();
+        return;
+    }
 
+    encounterCard.hidden = true;
+    emptyState.hidden = false;
+    emptyState.querySelector("p").textContent = "Buscando encuentro…";
+    emptyState.querySelector("span:last-child").textContent = "Consultando el ID en SportsMatch.";
     setSubmitting(lookupForm, true, "Buscar");
     try {
         const encounter = await requestEncounter(`${apiUrl}/${encodeURIComponent(id)}`);
         renderEncounter(encounter);
         showNotice(`Encuentro ${encounter.id} cargado.`);
     } catch (error) {
+        emptyState.querySelector("p").textContent = "No se pudo cargar el encuentro.";
+        emptyState.querySelector("span:last-child").textContent = "Revisa el ID e inténtalo otra vez.";
         showNotice(error.message, true);
     } finally {
         setSubmitting(lookupForm, false, "Buscar");
