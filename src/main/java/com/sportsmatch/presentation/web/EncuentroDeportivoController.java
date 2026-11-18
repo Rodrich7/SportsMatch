@@ -2,9 +2,11 @@ package com.sportsmatch.presentation.web;
 
 import com.sportsmatch.application.commands.AbrirInscripcionesCommand;
 import com.sportsmatch.application.commands.CerrarInscripcionesCommand;
+import com.sportsmatch.application.commands.ConfirmarEncuentroCommand;
 import com.sportsmatch.application.commands.CrearEncuentroCommand;
 import com.sportsmatch.application.commands.InscribirParticipanteCommand;
 import com.sportsmatch.application.handlers.CerrarInscripcionesHandler;
+import com.sportsmatch.application.handlers.ConfirmarEncuentroHandler;
 import com.sportsmatch.application.handlers.CrearEncuentroHandler;
 import com.sportsmatch.application.handlers.AbrirInscripcionesHandler;
 import com.sportsmatch.application.handlers.InscribirParticipanteHandler;
@@ -12,7 +14,6 @@ import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
 import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
 import com.sportsmatch.application.queries.ObtenerEncuentroPorIdQuery;
 import com.sportsmatch.application.usecase.CancelarEncuentro;
-import com.sportsmatch.application.usecase.ConfirmarEncuentro;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
 import com.sportsmatch.application.usecase.IniciarEncuentro;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
@@ -40,10 +41,10 @@ public class EncuentroDeportivoController {
     private final EncuentroDeportivoRepository encuentros;
     private final AbrirInscripcionesHandler abrirInscripcionesHandler;
     private final CerrarInscripcionesHandler cerrarInscripcionesHandler;
+    private final ConfirmarEncuentroHandler confirmarEncuentroHandler;
     private final CrearEncuentroHandler crearEncuentroHandler;
     private final InscribirParticipanteHandler inscribirParticipanteHandler;
     private final ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler;
-    private final ConfirmarEncuentro confirmarEncuentro = new ConfirmarEncuentro();
     private final IniciarEncuentro iniciarEncuentro = new IniciarEncuentro();
     private final FinalizarEncuentro finalizarEncuentro = new FinalizarEncuentro();
     private final CancelarEncuentro cancelarEncuentro = new CancelarEncuentro();
@@ -51,12 +52,14 @@ public class EncuentroDeportivoController {
     public EncuentroDeportivoController(EncuentroDeportivoRepository encuentros,
                                         AbrirInscripcionesHandler abrirInscripcionesHandler,
                                         CerrarInscripcionesHandler cerrarInscripcionesHandler,
+                                        ConfirmarEncuentroHandler confirmarEncuentroHandler,
                                         CrearEncuentroHandler crearEncuentroHandler,
                                         InscribirParticipanteHandler inscribirParticipanteHandler,
                                         ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler) {
         this.encuentros = encuentros;
         this.abrirInscripcionesHandler = abrirInscripcionesHandler;
         this.cerrarInscripcionesHandler = cerrarInscripcionesHandler;
+        this.confirmarEncuentroHandler = confirmarEncuentroHandler;
         this.crearEncuentroHandler = crearEncuentroHandler;
         this.inscribirParticipanteHandler = inscribirParticipanteHandler;
         this.obtenerEncuentroPorIdHandler = obtenerEncuentroPorIdHandler;
@@ -90,7 +93,8 @@ public class EncuentroDeportivoController {
 
     @PostMapping("/{id}/confirmar")
     public EncuentroDeportivo confirmar(@PathVariable Long id) {
-        return actualizar(id, confirmarEncuentro::ejecutar);
+        return confirmarEncuentroHandler.manejar(new ConfirmarEncuentroCommand(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @PostMapping("/{id}/iniciar")
