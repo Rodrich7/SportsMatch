@@ -5,6 +5,16 @@ const lookupId = document.querySelector("#encuentroId");
 const notice = document.querySelector("#notice");
 const emptyState = document.querySelector("#emptyState");
 const encounterCard = document.querySelector("#encuentroCard");
+const actionButtons = document.querySelector("#actionButtons");
+const participantForm = document.querySelector("#participantForm");
+
+const actionsByState = {
+    BORRADOR: [["abrir-inscripciones", "Abrir inscripciones"], ["cancelar", "Cancelar encuentro"]],
+    ABIERTO: [["cerrar-inscripciones", "Cerrar inscripciones"], ["cancelar", "Cancelar encuentro"]],
+    CERRADO: [["confirmar", "Confirmar encuentro"], ["cancelar", "Cancelar encuentro"]],
+    CONFIRMADO: [["iniciar", "Iniciar encuentro"], ["cancelar", "Cancelar encuentro"]],
+    EN_JUEGO: [["finalizar", "Finalizar encuentro"], ["cancelar", "Cancelar encuentro"]]
+};
 
 function showNotice(message, isError = false) {
     notice.textContent = message;
@@ -45,9 +55,35 @@ function renderEncounter(encounter) {
         ? encounter.participantes.join(", ")
         : "Todavía no hay participantes";
     document.querySelector("#estado").textContent = encounter.estado.replaceAll("_", " ");
+    renderActions(encounter.estado);
 
     emptyState.hidden = true;
     encounterCard.hidden = false;
+}
+
+function renderActions(state) {
+    actionButtons.replaceChildren();
+    participantForm.hidden = state !== "ABIERTO";
+
+    const actions = actionsByState[state] || [];
+    if (actions.length === 0) {
+        const message = document.createElement("span");
+        message.className = "no-actions";
+        message.textContent = state === "FINALIZADO"
+            ? "El encuentro ya finalizó."
+            : "El encuentro está cancelado.";
+        actionButtons.append(message);
+        return;
+    }
+
+    for (const [action, label] of actions) {
+        const button = document.createElement("button");
+        button.className = action === "cancelar" ? "button button-cancel" : "button button-action";
+        button.type = "button";
+        button.dataset.action = action;
+        button.textContent = label;
+        actionButtons.append(button);
+    }
 }
 
 function setSubmitting(form, isSubmitting, idleText) {
@@ -108,6 +144,45 @@ lookupForm.addEventListener("submit", async (event) => {
         showNotice(error.message, true);
     } finally {
         setSubmitting(lookupForm, false, "Buscar");
+    }
+});
+
+actionButtons.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+
+    clearNotice();
+    const id = document.querySelector("#detalleId").textContent;
+    button.disabled = true;
+    try {
+        const encounter = await requestEncounter(`${apiUrl}/${id}/${button.dataset.action}`, { method: "POST" });
+        renderEncounter(encounter);
+        showNotice(`Estado actualizado: ${encounter.estado.replaceAll("_", " ")}.`);
+    } catch (error) {
+        showNotice(error.message, true);
+        button.disabled = false;
+    }
+});
+
+participantForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearNotice();
+    const button = participantForm.querySelector("button[type='submit']");
+    button.disabled = true;
+    try {
+        const participant = new FormData(participantForm).get("participante").trim();
+        const id = document.querySelector("#detalleId").textContent;
+        const encounter = await requestEncounter(`${apiUrl}/${id}/participantes`, {
+            method: "POST",
+            body: JSON.stringify({ participante: participant })
+        });
+        participantForm.reset();
+        renderEncounter(encounter);
+        showNotice(`${participant} ya está inscrito.`);
+    } catch (error) {
+        showNotice(error.message, true);
+    } finally {
+        button.disabled = false;
     }
 });
 
