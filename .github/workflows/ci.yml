@@ -46,4 +46,31 @@ jobs:
         run: chmod +x gradlew
 
       - name: Ejecutar pruebas y generar build
-        run: ./gradlew build --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: postgres
+        run: |
+          for intento in 1 2 3; do
+            log_file="${RUNNER_TEMP}/sportsmatch-gradle-build-${intento}.log"
+
+            set +e
+            ./gradlew build --no-daemon 2>&1 | tee "$log_file"
+            resultado=${PIPESTATUS[0]}
+            set -e
+
+            if [ "$resultado" -eq 0 ]; then
+              exit 0
+            fi
+
+            if ! grep -Eq 'status code 429|HTTP 429|Too Many Requests' "$log_file"; then
+              exit "$resultado"
+            fi
+
+            if [ "$intento" -eq 3 ]; then
+              echo "Maven Central siguió limitando las solicitudes después de 3 intentos." >&2
+              exit "$resultado"
+            fi
+
+            espera=$((intento * 20))
+            echo "Maven Central devolvió HTTP 429; reintento en ${espera}s." >&2
+            sleep "$espera"
+          done
