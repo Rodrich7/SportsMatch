@@ -5,9 +5,10 @@ import com.sportsmatch.application.handlers.AbrirInscripcionesHandler;
 import com.sportsmatch.application.handlers.InscribirParticipanteHandler;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
 import com.sportsmatch.application.handlers.CerrarInscripcionesHandler;
+import com.sportsmatch.application.handlers.CancelarEncuentroHandler;
 import com.sportsmatch.application.handlers.ConfirmarEncuentroHandler;
-import com.sportsmatch.application.usecase.FinalizarEncuentro;
-import com.sportsmatch.application.usecase.IniciarEncuentro;
+import com.sportsmatch.application.handlers.FinalizarEncuentroHandler;
+import com.sportsmatch.application.handlers.IniciarEncuentroHandler;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
 import com.sportsmatch.domain.model.EstadoEncuentro;
 import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
@@ -58,8 +59,8 @@ class SportsMatchApplicationTests {
         encuentro.abrirInscripciones();
         encuentro.cerrarInscripciones();
         encuentro.confirmar();
-        new IniciarEncuentro().ejecutar(encuentro);
-        new FinalizarEncuentro().ejecutar(encuentro);
+        encuentro.iniciar();
+        encuentro.finalizar();
 
         assertEquals(EstadoEncuentro.FINALIZADO, encuentro.getEstado());
     }
@@ -96,10 +97,13 @@ class SportsMatchApplicationTests {
     void creaYActualizaUnEncuentroMedianteLaApi() {
         TestEncuentroRepository repository = new TestEncuentroRepository();
         EncuentroDeportivoController controller = new EncuentroDeportivoController(
-                repository, new AbrirInscripcionesHandler(repository), new CerrarInscripcionesHandler(repository),
+                new AbrirInscripcionesHandler(repository), new CerrarInscripcionesHandler(repository),
+                new CancelarEncuentroHandler(repository),
                 new ConfirmarEncuentroHandler(repository),
                 new CrearEncuentroHandler(repository),
+                new FinalizarEncuentroHandler(repository),
                 new InscribirParticipanteHandler(repository),
+                new IniciarEncuentroHandler(repository),
                 new ObtenerEncuentroPorIdHandler(repository)
         );
 
@@ -110,9 +114,16 @@ class SportsMatchApplicationTests {
         controller.abrirInscripciones(generatedId);
         controller.cerrarInscripciones(generatedId);
         controller.confirmar(generatedId);
+        controller.iniciar(generatedId);
+        controller.finalizar(generatedId);
 
         assertEquals(HttpStatus.CREATED, respuesta.getStatusCode());
-        assertEquals(EstadoEncuentro.CONFIRMADO, controller.obtener(generatedId).getEstado());
+        assertEquals(EstadoEncuentro.FINALIZADO, controller.obtener(generatedId).getEstado());
+
+        Long encuentroCanceladoId = controller.crear(
+                new CrearEncuentroRequest("Básquet", FECHA_ENCUENTRO, "Cancha Sur", 6, 10, "Diego")
+        ).getBody().getId();
+        assertEquals(EstadoEncuentro.CANCELADO, controller.cancelar(encuentroCanceladoId).getEstado());
     }
 
     private EncuentroDeportivo crearEncuentro(Long id) {

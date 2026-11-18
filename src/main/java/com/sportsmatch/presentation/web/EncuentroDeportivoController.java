@@ -1,21 +1,23 @@
 package com.sportsmatch.presentation.web;
 
 import com.sportsmatch.application.commands.AbrirInscripcionesCommand;
+import com.sportsmatch.application.commands.CancelarEncuentroCommand;
 import com.sportsmatch.application.commands.CerrarInscripcionesCommand;
 import com.sportsmatch.application.commands.ConfirmarEncuentroCommand;
 import com.sportsmatch.application.commands.CrearEncuentroCommand;
+import com.sportsmatch.application.commands.FinalizarEncuentroCommand;
 import com.sportsmatch.application.commands.InscribirParticipanteCommand;
+import com.sportsmatch.application.commands.IniciarEncuentroCommand;
 import com.sportsmatch.application.handlers.CerrarInscripcionesHandler;
+import com.sportsmatch.application.handlers.CancelarEncuentroHandler;
 import com.sportsmatch.application.handlers.ConfirmarEncuentroHandler;
 import com.sportsmatch.application.handlers.CrearEncuentroHandler;
+import com.sportsmatch.application.handlers.FinalizarEncuentroHandler;
 import com.sportsmatch.application.handlers.AbrirInscripcionesHandler;
 import com.sportsmatch.application.handlers.InscribirParticipanteHandler;
+import com.sportsmatch.application.handlers.IniciarEncuentroHandler;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
-import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
 import com.sportsmatch.application.queries.ObtenerEncuentroPorIdQuery;
-import com.sportsmatch.application.usecase.CancelarEncuentro;
-import com.sportsmatch.application.usecase.FinalizarEncuentro;
-import com.sportsmatch.application.usecase.IniciarEncuentro;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -32,36 +34,38 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
 @RestController
 @RequestMapping("/api/encuentros")
 public class EncuentroDeportivoController {
 
-    private final EncuentroDeportivoRepository encuentros;
     private final AbrirInscripcionesHandler abrirInscripcionesHandler;
     private final CerrarInscripcionesHandler cerrarInscripcionesHandler;
+    private final CancelarEncuentroHandler cancelarEncuentroHandler;
     private final ConfirmarEncuentroHandler confirmarEncuentroHandler;
     private final CrearEncuentroHandler crearEncuentroHandler;
+    private final FinalizarEncuentroHandler finalizarEncuentroHandler;
     private final InscribirParticipanteHandler inscribirParticipanteHandler;
+    private final IniciarEncuentroHandler iniciarEncuentroHandler;
     private final ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler;
-    private final IniciarEncuentro iniciarEncuentro = new IniciarEncuentro();
-    private final FinalizarEncuentro finalizarEncuentro = new FinalizarEncuentro();
-    private final CancelarEncuentro cancelarEncuentro = new CancelarEncuentro();
 
-    public EncuentroDeportivoController(EncuentroDeportivoRepository encuentros,
-                                        AbrirInscripcionesHandler abrirInscripcionesHandler,
+    public EncuentroDeportivoController(AbrirInscripcionesHandler abrirInscripcionesHandler,
                                         CerrarInscripcionesHandler cerrarInscripcionesHandler,
+                                        CancelarEncuentroHandler cancelarEncuentroHandler,
                                         ConfirmarEncuentroHandler confirmarEncuentroHandler,
                                         CrearEncuentroHandler crearEncuentroHandler,
+                                        FinalizarEncuentroHandler finalizarEncuentroHandler,
                                         InscribirParticipanteHandler inscribirParticipanteHandler,
+                                        IniciarEncuentroHandler iniciarEncuentroHandler,
                                         ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler) {
-        this.encuentros = encuentros;
         this.abrirInscripcionesHandler = abrirInscripcionesHandler;
         this.cerrarInscripcionesHandler = cerrarInscripcionesHandler;
+        this.cancelarEncuentroHandler = cancelarEncuentroHandler;
         this.confirmarEncuentroHandler = confirmarEncuentroHandler;
         this.crearEncuentroHandler = crearEncuentroHandler;
+        this.finalizarEncuentroHandler = finalizarEncuentroHandler;
         this.inscribirParticipanteHandler = inscribirParticipanteHandler;
+        this.iniciarEncuentroHandler = iniciarEncuentroHandler;
         this.obtenerEncuentroPorIdHandler = obtenerEncuentroPorIdHandler;
     }
 
@@ -99,17 +103,20 @@ public class EncuentroDeportivoController {
 
     @PostMapping("/{id}/iniciar")
     public EncuentroDeportivo iniciar(@PathVariable Long id) {
-        return actualizar(id, iniciarEncuentro::ejecutar);
+        return iniciarEncuentroHandler.manejar(new IniciarEncuentroCommand(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @PostMapping("/{id}/finalizar")
     public EncuentroDeportivo finalizar(@PathVariable Long id) {
-        return actualizar(id, finalizarEncuentro::ejecutar);
+        return finalizarEncuentroHandler.manejar(new FinalizarEncuentroCommand(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @PostMapping("/{id}/cancelar")
     public EncuentroDeportivo cancelar(@PathVariable Long id) {
-        return actualizar(id, cancelarEncuentro::ejecutar);
+        return cancelarEncuentroHandler.manejar(new CancelarEncuentroCommand(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @PostMapping("/{id}/participantes")
@@ -132,13 +139,6 @@ public class EncuentroDeportivoController {
                 .map(FieldError::getDefaultMessage)
                 .orElse("Los datos del encuentro son obligatorios y deben ser válidos");
         return ResponseEntity.badRequest().body(Map.of("error", mensaje));
-    }
-
-    private EncuentroDeportivo actualizar(Long id, Consumer<EncuentroDeportivo> accion) {
-        EncuentroDeportivo encuentro = buscarEncuentro(id);
-        accion.accept(encuentro);
-        encuentros.guardar(encuentro);
-        return encuentro;
     }
 
     private EncuentroDeportivo buscarEncuentro(Long id) {
