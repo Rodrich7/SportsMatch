@@ -5,7 +5,7 @@ import com.sportsmatch.application.handlers.AbrirInscripcionesHandler;
 import com.sportsmatch.application.handlers.InscribirParticipanteHandler;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
 import com.sportsmatch.application.handlers.CerrarInscripcionesHandler;
-import com.sportsmatch.application.usecase.ConfirmarEncuentro;
+import com.sportsmatch.application.handlers.ConfirmarEncuentroHandler;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
 import com.sportsmatch.application.usecase.IniciarEncuentro;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
@@ -57,7 +57,7 @@ class SportsMatchApplicationTests {
 
         encuentro.abrirInscripciones();
         encuentro.cerrarInscripciones();
-        new ConfirmarEncuentro().ejecutar(encuentro);
+        encuentro.confirmar();
         new IniciarEncuentro().ejecutar(encuentro);
         new FinalizarEncuentro().ejecutar(encuentro);
 
@@ -68,7 +68,7 @@ class SportsMatchApplicationTests {
     void noPermiteConfirmarUnEncuentroEnBorrador() {
         EncuentroDeportivo encuentro = crearEncuentro(3L);
 
-        assertThrows(IllegalStateException.class, () -> new ConfirmarEncuentro().ejecutar(encuentro));
+        assertThrows(IllegalStateException.class, encuentro::confirmar);
     }
 
     @Test
@@ -97,6 +97,7 @@ class SportsMatchApplicationTests {
         TestEncuentroRepository repository = new TestEncuentroRepository();
         EncuentroDeportivoController controller = new EncuentroDeportivoController(
                 repository, new AbrirInscripcionesHandler(repository), new CerrarInscripcionesHandler(repository),
+                new ConfirmarEncuentroHandler(repository),
                 new CrearEncuentroHandler(repository),
                 new InscribirParticipanteHandler(repository),
                 new ObtenerEncuentroPorIdHandler(repository)
