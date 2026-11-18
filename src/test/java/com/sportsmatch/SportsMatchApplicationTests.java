@@ -14,6 +14,8 @@ import com.sportsmatch.domain.model.EstadoEncuentro;
 import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
 import com.sportsmatch.presentation.web.CrearEncuentroRequest;
 import com.sportsmatch.presentation.web.EncuentroDeportivoController;
+import com.sportsmatch.presentation.web.assembler.EncuentroDeportivoAssembler;
+import com.sportsmatch.presentation.web.dto.EncuentroDeportivoResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -104,13 +106,14 @@ class SportsMatchApplicationTests {
                 new FinalizarEncuentroHandler(repository),
                 new InscribirParticipanteHandler(repository),
                 new IniciarEncuentroHandler(repository),
-                new ObtenerEncuentroPorIdHandler(repository)
+                new ObtenerEncuentroPorIdHandler(repository),
+                new EncuentroDeportivoAssembler()
         );
 
-        ResponseEntity<EncuentroDeportivo> respuesta = controller.crear(
+        ResponseEntity<EncuentroDeportivoResponse> respuesta = controller.crear(
                 new CrearEncuentroRequest("Vóley", FECHA_ENCUENTRO, "Cancha Norte", 8, 12, "Carla")
         );
-        Long generatedId = respuesta.getBody().getId();
+        Long generatedId = respuesta.getBody().id();
         controller.abrirInscripciones(generatedId);
         controller.cerrarInscripciones(generatedId);
         controller.confirmar(generatedId);
@@ -118,12 +121,12 @@ class SportsMatchApplicationTests {
         controller.finalizar(generatedId);
 
         assertEquals(HttpStatus.CREATED, respuesta.getStatusCode());
-        assertEquals(EstadoEncuentro.FINALIZADO, controller.obtener(generatedId).getEstado());
+        assertEquals(EstadoEncuentro.FINALIZADO, controller.obtener(generatedId).estado());
 
         Long encuentroCanceladoId = controller.crear(
                 new CrearEncuentroRequest("Básquet", FECHA_ENCUENTRO, "Cancha Sur", 6, 10, "Diego")
-        ).getBody().getId();
-        assertEquals(EstadoEncuentro.CANCELADO, controller.cancelar(encuentroCanceladoId).getEstado());
+        ).getBody().id();
+        assertEquals(EstadoEncuentro.CANCELADO, controller.cancelar(encuentroCanceladoId).estado());
     }
 
     private EncuentroDeportivo crearEncuentro(Long id) {

@@ -19,6 +19,8 @@ import com.sportsmatch.application.handlers.IniciarEncuentroHandler;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
 import com.sportsmatch.application.queries.ObtenerEncuentroPorIdQuery;
 import com.sportsmatch.domain.model.EncuentroDeportivo;
+import com.sportsmatch.presentation.web.assembler.EncuentroDeportivoAssembler;
+import com.sportsmatch.presentation.web.dto.EncuentroDeportivoResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +50,7 @@ public class EncuentroDeportivoController {
     private final InscribirParticipanteHandler inscribirParticipanteHandler;
     private final IniciarEncuentroHandler iniciarEncuentroHandler;
     private final ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler;
+    private final EncuentroDeportivoAssembler encuentroAssembler;
 
     public EncuentroDeportivoController(AbrirInscripcionesHandler abrirInscripcionesHandler,
                                         CerrarInscripcionesHandler cerrarInscripcionesHandler,
@@ -57,7 +60,8 @@ public class EncuentroDeportivoController {
                                         FinalizarEncuentroHandler finalizarEncuentroHandler,
                                         InscribirParticipanteHandler inscribirParticipanteHandler,
                                         IniciarEncuentroHandler iniciarEncuentroHandler,
-                                        ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler) {
+                                        ObtenerEncuentroPorIdHandler obtenerEncuentroPorIdHandler,
+                                        EncuentroDeportivoAssembler encuentroAssembler) {
         this.abrirInscripcionesHandler = abrirInscripcionesHandler;
         this.cerrarInscripcionesHandler = cerrarInscripcionesHandler;
         this.cancelarEncuentroHandler = cancelarEncuentroHandler;
@@ -67,63 +71,71 @@ public class EncuentroDeportivoController {
         this.inscribirParticipanteHandler = inscribirParticipanteHandler;
         this.iniciarEncuentroHandler = iniciarEncuentroHandler;
         this.obtenerEncuentroPorIdHandler = obtenerEncuentroPorIdHandler;
+        this.encuentroAssembler = encuentroAssembler;
     }
 
     @PostMapping
-    public ResponseEntity<EncuentroDeportivo> crear(@Valid @RequestBody CrearEncuentroRequest solicitud) {
+    public ResponseEntity<EncuentroDeportivoResponse> crear(@Valid @RequestBody CrearEncuentroRequest solicitud) {
         EncuentroDeportivo encuentro = crearEncuentroHandler.manejar(new CrearEncuentroCommand(
                 solicitud.deporte(), solicitud.fechaHora(), solicitud.cancha(),
                 solicitud.cupoMinimo(), solicitud.cupoMaximo(), solicitud.organizador()
         ));
-        return ResponseEntity.status(HttpStatus.CREATED).body(encuentro);
+        return ResponseEntity.status(HttpStatus.CREATED).body(encuentroAssembler.aRespuesta(encuentro));
     }
 
     @GetMapping("/{id}")
-    public EncuentroDeportivo obtener(@PathVariable Long id) {
-        return buscarEncuentro(id);
+    public EncuentroDeportivoResponse obtener(@PathVariable Long id) {
+        return encuentroAssembler.aRespuesta(buscarEncuentro(id));
     }
 
     @PostMapping("/{id}/abrir-inscripciones")
-    public EncuentroDeportivo abrirInscripciones(@PathVariable Long id) {
+    public EncuentroDeportivoResponse abrirInscripciones(@PathVariable Long id) {
         return abrirInscripcionesHandler.manejar(new AbrirInscripcionesCommand(id))
+                .map(encuentroAssembler::aRespuesta)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @PostMapping("/{id}/cerrar-inscripciones")
-    public EncuentroDeportivo cerrarInscripciones(@PathVariable Long id) {
+    public EncuentroDeportivoResponse cerrarInscripciones(@PathVariable Long id) {
         return cerrarInscripcionesHandler.manejar(new CerrarInscripcionesCommand(id))
+                .map(encuentroAssembler::aRespuesta)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @PostMapping("/{id}/confirmar")
-    public EncuentroDeportivo confirmar(@PathVariable Long id) {
+    public EncuentroDeportivoResponse confirmar(@PathVariable Long id) {
         return confirmarEncuentroHandler.manejar(new ConfirmarEncuentroCommand(id))
+                .map(encuentroAssembler::aRespuesta)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @PostMapping("/{id}/iniciar")
-    public EncuentroDeportivo iniciar(@PathVariable Long id) {
+    public EncuentroDeportivoResponse iniciar(@PathVariable Long id) {
         return iniciarEncuentroHandler.manejar(new IniciarEncuentroCommand(id))
+                .map(encuentroAssembler::aRespuesta)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @PostMapping("/{id}/finalizar")
-    public EncuentroDeportivo finalizar(@PathVariable Long id) {
+    public EncuentroDeportivoResponse finalizar(@PathVariable Long id) {
         return finalizarEncuentroHandler.manejar(new FinalizarEncuentroCommand(id))
+                .map(encuentroAssembler::aRespuesta)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @PostMapping("/{id}/cancelar")
-    public EncuentroDeportivo cancelar(@PathVariable Long id) {
+    public EncuentroDeportivoResponse cancelar(@PathVariable Long id) {
         return cancelarEncuentroHandler.manejar(new CancelarEncuentroCommand(id))
+                .map(encuentroAssembler::aRespuesta)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
     @PostMapping("/{id}/participantes")
-    public EncuentroDeportivo inscribirParticipante(@PathVariable Long id,
-                                                    @RequestBody InscribirParticipanteRequest solicitud) {
+    public EncuentroDeportivoResponse inscribirParticipante(@PathVariable Long id,
+                                                            @RequestBody InscribirParticipanteRequest solicitud) {
         return inscribirParticipanteHandler.manejar(
                         new InscribirParticipanteCommand(id, solicitud.participante()))
+                .map(encuentroAssembler::aRespuesta)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
 
