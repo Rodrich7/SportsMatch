@@ -46,6 +46,8 @@ jobs:
         run: chmod +x gradlew
 
       - name: Ejecutar pruebas y generar build
+        env:
+          SPRING_PROFILES_ACTIVE: postgres
         run: |
           for intento in 1 2 3; do
             log_file="${RUNNER_TEMP}/sportsmatch-gradle-build-${intento}.log"
