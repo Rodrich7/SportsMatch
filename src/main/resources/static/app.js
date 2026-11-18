@@ -7,6 +7,7 @@ const emptyState = document.querySelector("#emptyState");
 const encounterCard = document.querySelector("#encuentroCard");
 const actionButtons = document.querySelector("#actionButtons");
 const participantForm = document.querySelector("#participantForm");
+const actionNotice = document.querySelector("#actionNotice");
 
 const actionsByState = {
     BORRADOR: [["abrir-inscripciones", "Abrir inscripciones"], ["cancelar", "Cancelar encuentro"]],
@@ -20,7 +21,12 @@ function showNotice(message, isError = false) {
     notice.textContent = message;
     notice.classList.toggle("error", isError);
     notice.hidden = false;
-    notice.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function showActionNotice(message, isError = false) {
+    actionNotice.textContent = message;
+    actionNotice.classList.toggle("error", isError);
+    actionNotice.hidden = false;
 }
 
 function clearNotice() {
@@ -183,22 +189,24 @@ actionButtons.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
 
-    clearNotice();
+    actionNotice.hidden = true;
+    actionNotice.textContent = "";
     const id = document.querySelector("#detalleId").textContent;
     button.disabled = true;
     try {
         const encounter = await requestEncounter(`${apiUrl}/${id}/${button.dataset.action}`, { method: "POST" });
         renderEncounter(encounter);
-        showNotice(`Estado actualizado: ${encounter.estado.replaceAll("_", " ")}.`);
+        showActionNotice(`Estado actualizado: ${encounter.estado.replaceAll("_", " ")}.`);
     } catch (error) {
-        showNotice(error.message, true);
+        showActionNotice(error.message, true);
         button.disabled = false;
     }
 });
 
 participantForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    clearNotice();
+    actionNotice.hidden = true;
+    actionNotice.textContent = "";
     const button = participantForm.querySelector("button[type='submit']");
     button.disabled = true;
     try {
@@ -210,9 +218,9 @@ participantForm.addEventListener("submit", async (event) => {
         });
         participantForm.reset();
         renderEncounter(encounter);
-        showNotice(`${participant} ya está inscrito.`);
+        showActionNotice(`${participant} ya está inscrito.`);
     } catch (error) {
-        showNotice(error.message, true);
+        showActionNotice(error.message, true);
     } finally {
         button.disabled = false;
     }
