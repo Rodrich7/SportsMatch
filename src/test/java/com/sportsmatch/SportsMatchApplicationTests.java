@@ -1,9 +1,9 @@
 package com.sportsmatch;
 
 import com.sportsmatch.application.handlers.CrearEncuentroHandler;
+import com.sportsmatch.application.handlers.AbrirInscripcionesHandler;
 import com.sportsmatch.application.handlers.InscribirParticipanteHandler;
 import com.sportsmatch.application.handlers.ObtenerEncuentroPorIdHandler;
-import com.sportsmatch.application.usecase.AbrirInscripciones;
 import com.sportsmatch.application.usecase.CerrarInscripciones;
 import com.sportsmatch.application.usecase.ConfirmarEncuentro;
 import com.sportsmatch.application.usecase.FinalizarEncuentro;
@@ -55,7 +55,7 @@ class SportsMatchApplicationTests {
     void completaElCicloDeVidaDelEncuentro() {
         EncuentroDeportivo encuentro = crearEncuentro(1L);
 
-        new AbrirInscripciones().ejecutar(encuentro);
+        encuentro.abrirInscripciones();
         new CerrarInscripciones().ejecutar(encuentro);
         new ConfirmarEncuentro().ejecutar(encuentro);
         new IniciarEncuentro().ejecutar(encuentro);
@@ -74,7 +74,7 @@ class SportsMatchApplicationTests {
     @Test
     void inscribeParticipanteCuandoLasInscripcionesEstanAbiertas() {
         EncuentroDeportivo encuentro = crearEncuentro(5L);
-        new AbrirInscripciones().ejecutar(encuentro);
+        encuentro.abrirInscripciones();
 
         encuentro.inscribirParticipante("Luis");
 
@@ -85,7 +85,7 @@ class SportsMatchApplicationTests {
     @Test
     void noPermiteInscribirAlMismoParticipanteDosVeces() {
         EncuentroDeportivo encuentro = crearEncuentro(6L);
-        new AbrirInscripciones().ejecutar(encuentro);
+        encuentro.abrirInscripciones();
         encuentro.inscribirParticipante("Luis");
 
         assertThrows(IllegalArgumentException.class,
@@ -96,7 +96,8 @@ class SportsMatchApplicationTests {
     void creaYActualizaUnEncuentroMedianteLaApi() {
         TestEncuentroRepository repository = new TestEncuentroRepository();
         EncuentroDeportivoController controller = new EncuentroDeportivoController(
-                repository, new CrearEncuentroHandler(repository), new InscribirParticipanteHandler(repository),
+                repository, new AbrirInscripcionesHandler(repository), new CrearEncuentroHandler(repository),
+                new InscribirParticipanteHandler(repository),
                 new ObtenerEncuentroPorIdHandler(repository)
         );
 
