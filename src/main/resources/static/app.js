@@ -148,6 +148,7 @@ createForm.addEventListener("submit", async (event) => {
             method: "POST",
             body: JSON.stringify(payload)
         });
+        createForm.reset();
         lookupId.value = encounter.id;
         lookupSequence++;
         renderEncounter(encounter);
