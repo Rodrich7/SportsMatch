@@ -8,6 +8,7 @@ const encounterCard = document.querySelector("#encuentroCard");
 const actionButtons = document.querySelector("#actionButtons");
 const participantForm = document.querySelector("#participantForm");
 const actionNotice = document.querySelector("#actionNotice");
+let lookupSequence = 0;
 
 const actionsByState = {
     BORRADOR: [["abrir-inscripciones", "Abrir inscripciones"], ["cancelar", "Cancelar encuentro"]],
@@ -148,6 +149,7 @@ createForm.addEventListener("submit", async (event) => {
             body: JSON.stringify(payload)
         });
         lookupId.value = encounter.id;
+        lookupSequence++;
         renderEncounter(encounter);
         showNotice(`Encuentro creado. Guarda el ID ${encounter.id} para consultarlo después.`);
     } catch (error) {
@@ -160,6 +162,7 @@ createForm.addEventListener("submit", async (event) => {
 lookupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearNotice();
+    const requestSequence = ++lookupSequence;
     const id = lookupId.value.trim();
     if (!id || !Number.isSafeInteger(Number(id)) || Number(id) < 1) {
         showNotice("Escribe un ID entero mayor que cero.", true);
@@ -169,19 +172,26 @@ lookupForm.addEventListener("submit", async (event) => {
 
     encounterCard.hidden = true;
     emptyState.hidden = false;
+    document.querySelector("#estado").textContent = "";
+    actionButtons.replaceChildren();
+    actionNotice.hidden = true;
+    actionNotice.textContent = "";
+    participantForm.hidden = true;
     emptyState.querySelector("p").textContent = "Buscando encuentro…";
     emptyState.querySelector("span:last-child").textContent = "Consultando el ID en SportsMatch.";
     setSubmitting(lookupForm, true, "Buscar");
     try {
         const encounter = await requestEncounter(`${apiUrl}/${encodeURIComponent(id)}`);
+        if (requestSequence !== lookupSequence) return;
         renderEncounter(encounter);
         showNotice(`Encuentro ${encounter.id} cargado.`);
     } catch (error) {
+        if (requestSequence !== lookupSequence) return;
         emptyState.querySelector("p").textContent = "No se pudo cargar el encuentro.";
         emptyState.querySelector("span:last-child").textContent = "Revisa el ID e inténtalo otra vez.";
         showNotice(error.message, true);
     } finally {
-        setSubmitting(lookupForm, false, "Buscar");
+        if (requestSequence === lookupSequence) setSubmitting(lookupForm, false, "Buscar");
     }
 });
 
@@ -192,9 +202,11 @@ actionButtons.addEventListener("click", async (event) => {
     actionNotice.hidden = true;
     actionNotice.textContent = "";
     const id = document.querySelector("#detalleId").textContent;
+    const requestSequence = lookupSequence;
     button.disabled = true;
     try {
         const encounter = await requestEncounter(`${apiUrl}/${id}/${button.dataset.action}`, { method: "POST" });
+        if (requestSequence !== lookupSequence) return;
         renderEncounter(encounter);
         showActionNotice(`Estado actualizado: ${encounter.estado.replaceAll("_", " ")}.`);
     } catch (error) {
@@ -212,10 +224,12 @@ participantForm.addEventListener("submit", async (event) => {
     try {
         const participant = new FormData(participantForm).get("participante").trim();
         const id = document.querySelector("#detalleId").textContent;
+        const requestSequence = lookupSequence;
         const encounter = await requestEncounter(`${apiUrl}/${id}/participantes`, {
             method: "POST",
             body: JSON.stringify({ participante: participant })
         });
+        if (requestSequence !== lookupSequence) return;
         participantForm.reset();
         renderEncounter(encounter);
         showActionNotice(`${participant} ya está inscrito.`);
