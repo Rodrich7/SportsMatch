@@ -108,6 +108,10 @@ public class EncuentroDeportivo {
     }
 
     public void cerrarInscripciones() {
+        if (participantes.size() < cupoMinimo) {
+            throw new IllegalStateException(
+                    "Se necesitan al menos " + cupoMinimo + " participantes para cerrar las inscripciones");
+        }
         cambiarEstado(EstadoEncuentro.ABIERTO, EstadoEncuentro.CERRADO, "cerrar inscripciones");
     }
 
