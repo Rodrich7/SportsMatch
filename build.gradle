@@ -13,7 +13,12 @@ java {
 	}
 }
 
+def mavenCentralMirror = System.getenv('MAVEN_CENTRAL_MIRROR')
+
 repositories {
+	if (mavenCentralMirror) {
+		maven { url = uri(mavenCentralMirror) }
+	}
 	mavenCentral()
 }
 
