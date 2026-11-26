@@ -14,7 +14,8 @@ public record EncuentroDeportivoResponse(
         int cupoMaximo,
         String organizador,
         EstadoEncuentro estado,
-        List<String> participantes
+        List<String> participantes,
+        String resultado
 ) {
     public EncuentroDeportivoResponse {
         participantes = List.copyOf(participantes);

@@ -7,6 +7,7 @@ const emptyState = document.querySelector("#emptyState");
 const encounterCard = document.querySelector("#encuentroCard");
 const actionButtons = document.querySelector("#actionButtons");
 const participantForm = document.querySelector("#participantForm");
+const resultForm = document.querySelector("#resultForm");
 const actionNotice = document.querySelector("#actionNotice");
 let lookupSequence = 0;
 
@@ -15,7 +16,7 @@ const actionsByState = {
     ABIERTO: [["cerrar-inscripciones", "Cerrar inscripciones"], ["cancelar", "Cancelar encuentro"]],
     CERRADO: [["confirmar", "Confirmar encuentro"], ["cancelar", "Cancelar encuentro"]],
     CONFIRMADO: [["iniciar", "Iniciar encuentro"], ["cancelar", "Cancelar encuentro"]],
-    EN_JUEGO: [["finalizar", "Finalizar encuentro"], ["cancelar", "Cancelar encuentro"]]
+    EN_JUEGO: [["cancelar", "Cancelar encuentro"]]
 };
 
 function showNotice(message, isError = false) {
@@ -62,6 +63,8 @@ function renderEncounter(encounter) {
     document.querySelector("#detalleParticipantes").textContent = encounter.participantes.length
         ? encounter.participantes.join(", ")
         : "Todavía no hay participantes";
+    document.querySelector("#detalleResultado").textContent = encounter.resultado || "";
+    document.querySelector("#resultadoRow").hidden = !encounter.resultado;
     document.querySelector("#estado").textContent = encounter.estado.replaceAll("_", " ");
     renderActions(encounter.estado);
 
@@ -72,6 +75,7 @@ function renderEncounter(encounter) {
 function renderActions(state) {
     actionButtons.replaceChildren();
     participantForm.hidden = state !== "ABIERTO";
+    resultForm.hidden = state !== "EN_JUEGO";
 
     const actions = actionsByState[state] || [];
     if (actions.length === 0) {
@@ -149,6 +153,7 @@ createForm.addEventListener("submit", async (event) => {
             body: JSON.stringify(payload)
         });
         createForm.reset();
+        resultForm.reset();
         lookupId.value = encounter.id;
         lookupSequence++;
         renderEncounter(encounter);
@@ -178,6 +183,8 @@ lookupForm.addEventListener("submit", async (event) => {
     actionNotice.hidden = true;
     actionNotice.textContent = "";
     participantForm.hidden = true;
+    resultForm.hidden = true;
+    resultForm.reset();
     emptyState.querySelector("p").textContent = "Buscando encuentro…";
     emptyState.querySelector("span:last-child").textContent = "Consultando el ID en SportsMatch.";
     setSubmitting(lookupForm, true, "Buscar");
@@ -236,6 +243,37 @@ participantForm.addEventListener("submit", async (event) => {
         showActionNotice(`${participant} ya está inscrito.`);
     } catch (error) {
         showActionNotice(error.message, true);
+    } finally {
+        button.disabled = false;
+    }
+});
+
+resultForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    actionNotice.hidden = true;
+    actionNotice.textContent = "";
+    const button = resultForm.querySelector("button[type='submit']");
+    const resultado = new FormData(resultForm).get("resultado").trim();
+    if (!resultado) {
+        showActionNotice("Escribe el resultado final del encuentro.", true);
+        resultForm.elements.resultado.focus();
+        return;
+    }
+
+    const id = document.querySelector("#detalleId").textContent;
+    const requestSequence = lookupSequence;
+    button.disabled = true;
+    try {
+        const encounter = await requestEncounter(`${apiUrl}/${id}/finalizar`, {
+            method: "POST",
+            body: JSON.stringify({ resultado })
+        });
+        if (requestSequence !== lookupSequence) return;
+        resultForm.reset();
+        renderEncounter(encounter);
+        showActionNotice(`Encuentro finalizado con resultado ${encounter.resultado}.`);
+    } catch (error) {
+        if (requestSequence === lookupSequence) showActionNotice(error.message, true);
     } finally {
         button.disabled = false;
     }

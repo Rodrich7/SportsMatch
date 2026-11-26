@@ -19,7 +19,7 @@ public class FinalizarEncuentroHandler {
     public Optional<EncuentroDeportivo> manejar(FinalizarEncuentroCommand comando) {
         Optional<EncuentroDeportivo> encontrado = encuentros.buscarPorId(comando.encuentroId());
         encontrado.ifPresent(encuentro -> {
-            encuentro.finalizar();
+            encuentro.finalizar(comando.resultado());
             encuentros.guardar(encuentro);
         });
         return encontrado;

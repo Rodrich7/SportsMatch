@@ -39,12 +39,13 @@ public class PostgresEncuentroDeportivoRepository implements EncuentroDeportivoR
     private EncuentroDeportivoEntity aEntidad(EncuentroDeportivo encuentro) {
         return new EncuentroDeportivoEntity(encuentro.getId(), encuentro.getDeporte(), encuentro.getFechaHora(),
                 encuentro.getCancha(), encuentro.getCupoMinimo(), encuentro.getCupoMaximo(),
-                encuentro.getOrganizador(), encuentro.getEstado(), encuentro.getParticipantes());
+                encuentro.getOrganizador(), encuentro.getEstado(), encuentro.getParticipantes(),
+                encuentro.getResultado());
     }
 
     private EncuentroDeportivo aDominio(EncuentroDeportivoEntity entity) {
         return EncuentroDeportivo.restaurar(entity.getId(), entity.getDeporte(), entity.getFechaHora(),
                 entity.getCancha(), entity.getCupoMinimo(), entity.getCupoMaximo(), entity.getOrganizador(),
-                entity.getEstado(), entity.getParticipantes());
+                entity.getEstado(), entity.getParticipantes(), entity.getResultado());
     }
 }

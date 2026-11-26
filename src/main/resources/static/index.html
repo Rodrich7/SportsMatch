@@ -106,6 +106,10 @@
                     <span>Participantes</span>
                     <strong id="detalleParticipantes"></strong>
                 </div>
+                <div id="resultadoRow" class="participants-row" hidden>
+                    <span>Resultado</span>
+                    <strong id="detalleResultado"></strong>
+                </div>
                 <div class="actions-section">
                     <p class="action-title">Acciones disponibles</p>
                     <div id="actionButtons" class="action-buttons"></div>
@@ -119,6 +123,16 @@
                                 <button class="button button-secondary" type="submit">Inscribir</button>
                             </div>
                         </div>
+                    </form>
+                    <form id="resultForm" class="result-form" hidden>
+                        <label class="field" for="resultado">
+                            <span>Resultado final</span>
+                            <div class="lookup-control">
+                                <input id="resultado" name="resultado" type="text" maxlength="200"
+                                       placeholder="Ej. 2-1" required>
+                                <button class="button button-secondary" type="submit">Finalizar</button>
+                            </div>
+                        </label>
                     </form>
                 </div>
             </section>
