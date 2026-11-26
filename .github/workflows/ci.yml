@@ -48,6 +48,8 @@ jobs:
       - name: Ejecutar pruebas y generar build
         env:
           SPRING_PROFILES_ACTIVE: postgres
+          ADMIN_USERNAME: admin-ci
+          ADMIN_PASSWORD: sportsmatch-ci-only
         run: |
           for intento in 1 2 3; do
             log_file="${RUNNER_TEMP}/sportsmatch-gradle-build-${intento}.log"
