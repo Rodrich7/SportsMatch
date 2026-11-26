@@ -17,7 +17,8 @@ public class EncuentroDeportivoAssembler {
                 encuentro.getCupoMaximo(),
                 encuentro.getOrganizador(),
                 encuentro.getEstado(),
-                encuentro.getParticipantes()
+                encuentro.getParticipantes(),
+                encuentro.getResultado()
         );
     }
 }

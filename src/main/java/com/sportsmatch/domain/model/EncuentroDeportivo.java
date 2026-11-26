@@ -15,6 +15,7 @@ public class EncuentroDeportivo {
     private int cupoMaximo;
     private String organizador;
     private EstadoEncuentro estado;
+    private String resultado;
     private final List<String> participantes = new ArrayList<>();
 
     public EncuentroDeportivo(Long id, String deporte, LocalDateTime fechaHora, String cancha,
@@ -33,10 +34,18 @@ public class EncuentroDeportivo {
     public static EncuentroDeportivo restaurar(Long id, String deporte, LocalDateTime fechaHora, String cancha,
                                                int cupoMinimo, int cupoMaximo, String organizador,
                                                EstadoEncuentro estado, List<String> participantes) {
+        return restaurar(id, deporte, fechaHora, cancha, cupoMinimo, cupoMaximo, organizador,
+                estado, participantes, null);
+    }
+
+    public static EncuentroDeportivo restaurar(Long id, String deporte, LocalDateTime fechaHora, String cancha,
+                                               int cupoMinimo, int cupoMaximo, String organizador,
+                                               EstadoEncuentro estado, List<String> participantes, String resultado) {
         EncuentroDeportivo encuentro = new EncuentroDeportivo(
                 id, deporte, fechaHora, cancha, cupoMinimo, cupoMaximo, organizador);
         encuentro.estado = Objects.requireNonNull(estado, "El estado es obligatorio");
         encuentro.participantes.addAll(participantes);
+        encuentro.resultado = resultado;
         return encuentro;
     }
 
@@ -81,6 +90,10 @@ public class EncuentroDeportivo {
         return estado;
     }
 
+    public String getResultado() {
+        return resultado;
+    }
+
     public String getOrganizador() {
         return organizador;
     }
@@ -123,8 +136,13 @@ public class EncuentroDeportivo {
         cambiarEstado(EstadoEncuentro.CONFIRMADO, EstadoEncuentro.EN_JUEGO, "iniciar");
     }
 
-    public void finalizar() {
+    public void finalizar(String resultado) {
+        String resultadoValidado = validarTexto(resultado, "El resultado es obligatorio");
+        if (resultadoValidado.length() > 200) {
+            throw new IllegalArgumentException("El resultado no puede superar los 200 caracteres");
+        }
         cambiarEstado(EstadoEncuentro.EN_JUEGO, EstadoEncuentro.FINALIZADO, "finalizar");
+        this.resultado = resultadoValidado;
     }
 
     public void cancelar() {

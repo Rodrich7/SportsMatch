@@ -48,6 +48,9 @@ public class EncuentroDeportivoEntity {
     @Column(nullable = false)
     private EstadoEncuentro estado;
 
+    @Column(length = 200)
+    private String resultado;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "encuentro_participantes", joinColumns = @JoinColumn(name = "encuentro_id"))
     @Column(name = "participante", nullable = false)
@@ -58,7 +61,7 @@ public class EncuentroDeportivoEntity {
 
     EncuentroDeportivoEntity(Long id, String deporte, LocalDateTime fechaHora, String cancha,
                              int cupoMinimo, int cupoMaximo, String organizador, EstadoEncuentro estado,
-                             List<String> participantes) {
+                             List<String> participantes, String resultado) {
         this.id = id;
         this.deporte = deporte;
         this.fechaHora = fechaHora;
@@ -68,6 +71,7 @@ public class EncuentroDeportivoEntity {
         this.organizador = organizador;
         this.estado = estado;
         this.participantes = new ArrayList<>(participantes);
+        this.resultado = resultado;
     }
 
     Long getId() { return id; }
@@ -78,5 +82,6 @@ public class EncuentroDeportivoEntity {
     int getCupoMaximo() { return cupoMaximo; }
     String getOrganizador() { return organizador; }
     EstadoEncuentro getEstado() { return estado; }
+    String getResultado() { return resultado; }
     List<String> getParticipantes() { return participantes; }
 }
