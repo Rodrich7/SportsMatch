@@ -14,7 +14,11 @@
         <span class="brand-mark" aria-hidden="true">S</span>
         <span>Sports<span class="brand-accent">Match</span></span>
     </a>
-    <span class="api-status"><span class="status-dot"></span> API local</span>
+    <div class="topbar-actions">
+        <span id="adminStatus" class="api-status"><span class="status-dot"></span> Modo público</span>
+        <button id="adminLoginButton" class="button button-secondary" type="button">Acceso administrador</button>
+        <button id="adminLogoutButton" class="button button-secondary" type="button" hidden>Cerrar sesión</button>
+    </div>
 </header>
 
 <main class="page-shell">
@@ -25,6 +29,27 @@
     </section>
 
     <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+    <dialog id="adminDialog" class="admin-dialog">
+        <form id="adminLoginForm" class="admin-login-form">
+            <p class="eyebrow">ADMINISTRACIÓN</p>
+            <h2>Iniciar sesión</h2>
+            <p class="dialog-copy">Se necesita una cuenta de administrador para crear o cambiar encuentros.</p>
+            <label class="field">
+                <span>Usuario</span>
+                <input name="username" autocomplete="username" required>
+            </label>
+            <label class="field">
+                <span>Contraseña</span>
+                <input name="password" type="password" autocomplete="current-password" required>
+            </label>
+            <p id="adminLoginError" class="login-error" role="alert" hidden></p>
+            <div class="dialog-actions">
+                <button id="adminCancelButton" class="button button-secondary" type="button">Cancelar</button>
+                <button class="button button-primary" type="submit">Ingresar</button>
+            </div>
+        </form>
+    </dialog>
 
     <section class="workspace" aria-label="Administrar encuentros">
         <article class="panel create-panel">
