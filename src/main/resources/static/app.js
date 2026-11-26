@@ -9,6 +9,13 @@ const actionButtons = document.querySelector("#actionButtons");
 const participantForm = document.querySelector("#participantForm");
 const resultForm = document.querySelector("#resultForm");
 const actionNotice = document.querySelector("#actionNotice");
+const adminDialog = document.querySelector("#adminDialog");
+const adminLoginForm = document.querySelector("#adminLoginForm");
+const adminLoginError = document.querySelector("#adminLoginError");
+const adminLoginButton = document.querySelector("#adminLoginButton");
+const adminLogoutButton = document.querySelector("#adminLogoutButton");
+const adminStatus = document.querySelector("#adminStatus");
+let adminAuthorization = null;
 let lookupSequence = 0;
 
 const actionsByState = {
@@ -38,13 +45,21 @@ function clearNotice() {
 }
 
 async function requestEncounter(url, options = {}) {
+    const { admin = false, ...requestOptions } = options;
+    const headers = { "Content-Type": "application/json", ...requestOptions.headers };
+    if (admin) {
+        if (!adminAuthorization) throw new Error("Inicia sesión como administrador para realizar esta acción.");
+        headers.Authorization = adminAuthorization;
+    }
     const response = await fetch(url, {
-        ...options,
-        headers: { "Content-Type": "application/json", ...options.headers }
+        ...requestOptions,
+        headers
     });
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
+        if (response.status === 401 && admin) throw new Error("Usuario o contraseña de administrador incorrectos.");
+        if (response.status === 403 && admin) throw new Error("La cuenta no tiene permisos de administrador.");
         throw new Error(data?.error || data?.message || `La solicitud falló (HTTP ${response.status}).`);
     }
     return data;
@@ -150,6 +165,7 @@ createForm.addEventListener("submit", async (event) => {
     try {
         const encounter = await requestEncounter(apiUrl, {
             method: "POST",
+            admin: true,
             body: JSON.stringify(payload)
         });
         createForm.reset();
@@ -213,7 +229,7 @@ actionButtons.addEventListener("click", async (event) => {
     const requestSequence = lookupSequence;
     button.disabled = true;
     try {
-        const encounter = await requestEncounter(`${apiUrl}/${id}/${button.dataset.action}`, { method: "POST" });
+        const encounter = await requestEncounter(`${apiUrl}/${id}/${button.dataset.action}`, { method: "POST", admin: true });
         if (requestSequence !== lookupSequence) return;
         renderEncounter(encounter);
         showActionNotice(`Estado actualizado: ${encounter.estado.replaceAll("_", " ")}.`);
@@ -266,6 +282,7 @@ resultForm.addEventListener("submit", async (event) => {
     try {
         const encounter = await requestEncounter(`${apiUrl}/${id}/finalizar`, {
             method: "POST",
+            admin: true,
             body: JSON.stringify({ resultado })
         });
         if (requestSequence !== lookupSequence) return;
@@ -283,3 +300,46 @@ const fechaInput = document.querySelector("#fechaHora");
 const ahora = new Date();
 ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
 fechaInput.min = ahora.toISOString().slice(0, 16);
+
+adminLoginButton.addEventListener("click", () => {
+    adminLoginError.hidden = true;
+    adminLoginError.textContent = "";
+    adminDialog.showModal();
+});
+
+document.querySelector("#adminCancelButton").addEventListener("click", () => adminDialog.close());
+
+adminLoginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const credentials = new FormData(adminLoginForm);
+    const authorization = `Basic ${btoa(`${credentials.get("username")}:${credentials.get("password")}`)}`;
+    const button = adminLoginForm.querySelector("button[type='submit']");
+    button.disabled = true;
+    adminLoginError.hidden = true;
+    try {
+        const response = await fetch("/api/admin/sesion", { headers: { Authorization: authorization } });
+        if (!response.ok) throw new Error(response.status === 401
+            ? "Usuario o contraseña incorrectos."
+            : "No se pudo validar el acceso de administrador.");
+        adminAuthorization = authorization;
+        adminStatus.innerHTML = '<span class="status-dot"></span> Administrador conectado';
+        adminLoginButton.hidden = true;
+        adminLogoutButton.hidden = false;
+        adminLoginForm.reset();
+        adminDialog.close();
+        showNotice("Sesión de administrador iniciada.");
+    } catch (error) {
+        adminLoginError.textContent = error.message;
+        adminLoginError.hidden = false;
+    } finally {
+        button.disabled = false;
+    }
+});
+
+adminLogoutButton.addEventListener("click", () => {
+    adminAuthorization = null;
+    adminStatus.innerHTML = '<span class="status-dot"></span> Modo público';
+    adminLoginButton.hidden = false;
+    adminLogoutButton.hidden = true;
+    showNotice("Sesión de administrador cerrada.");
+});
