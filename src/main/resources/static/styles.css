@@ -99,6 +99,7 @@ h2 { margin: 0; font-size: 21px; letter-spacing: -.5px; }
 .button-action { border: 1px solid rgba(145, 184, 255, .2); background: rgba(145, 184, 255, .1); color: #c7dcff; }
 .button-cancel { border: 1px solid rgba(255, 143, 143, .2); background: rgba(255, 143, 143, .08); color: #ffc1c1; }
 .participant-form { margin-top: 14px; }
+.result-form { margin-top: 14px; }
 .no-actions { color: #99a8bc; font-size: 11px; }
 
 .notice { margin: 0 0 18px; padding: 11px 14px; border: 1px solid rgba(136, 238, 168, .24); border-radius: 10px; background: rgba(136, 238, 168, .08); color: #c9f6d6; font-size: 13px; }

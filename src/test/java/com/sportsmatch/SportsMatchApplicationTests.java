@@ -13,6 +13,7 @@ import com.sportsmatch.domain.model.EncuentroDeportivo;
 import com.sportsmatch.domain.model.EstadoEncuentro;
 import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
 import com.sportsmatch.presentation.web.CrearEncuentroRequest;
+import com.sportsmatch.presentation.web.FinalizarEncuentroRequest;
 import com.sportsmatch.presentation.web.InscribirParticipanteRequest;
 import com.sportsmatch.presentation.web.EncuentroDeportivoController;
 import com.sportsmatch.presentation.web.assembler.EncuentroDeportivoAssembler;
@@ -66,9 +67,10 @@ class SportsMatchApplicationTests {
         encuentro.cerrarInscripciones();
         encuentro.confirmar();
         encuentro.iniciar();
-        encuentro.finalizar();
+        encuentro.finalizar("10-8");
 
         assertEquals(EstadoEncuentro.FINALIZADO, encuentro.getEstado());
+        assertEquals("10-8", encuentro.getResultado());
     }
 
     @Test
@@ -126,10 +128,11 @@ class SportsMatchApplicationTests {
         controller.cerrarInscripciones(generatedId);
         controller.confirmar(generatedId);
         controller.iniciar(generatedId);
-        controller.finalizar(generatedId);
+        controller.finalizar(generatedId, new FinalizarEncuentroRequest("8-6"));
 
         assertEquals(HttpStatus.CREATED, respuesta.getStatusCode());
         assertEquals(EstadoEncuentro.FINALIZADO, controller.obtener(generatedId).estado());
+        assertEquals("8-6", controller.obtener(generatedId).resultado());
 
         Long encuentroCanceladoId = controller.crear(
                 new CrearEncuentroRequest("Básquet", FECHA_ENCUENTRO, "Cancha Sur", 6, 10, "Diego")
@@ -155,7 +158,7 @@ class SportsMatchApplicationTests {
             EncuentroDeportivo asignado = EncuentroDeportivo.restaurar(ids.getAndIncrement(),
                     encuentro.getDeporte(), encuentro.getFechaHora(), encuentro.getCancha(),
                     encuentro.getCupoMinimo(), encuentro.getCupoMaximo(), encuentro.getOrganizador(),
-                    encuentro.getEstado(), encuentro.getParticipantes());
+                    encuentro.getEstado(), encuentro.getParticipantes(), encuentro.getResultado());
             encuentros.put(asignado.getId(), asignado);
             return asignado;
         }

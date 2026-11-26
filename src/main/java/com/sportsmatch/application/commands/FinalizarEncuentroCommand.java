@@ -1,4 +1,4 @@
 package com.sportsmatch.application.commands;
 
-public record FinalizarEncuentroCommand(Long encuentroId) {
+public record FinalizarEncuentroCommand(Long encuentroId, String resultado) {
 }

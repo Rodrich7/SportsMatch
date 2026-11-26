@@ -117,8 +117,9 @@ public class EncuentroDeportivoController {
     }
 
     @PostMapping("/{id}/finalizar")
-    public EncuentroDeportivoResponse finalizar(@PathVariable Long id) {
-        return finalizarEncuentroHandler.manejar(new FinalizarEncuentroCommand(id))
+    public EncuentroDeportivoResponse finalizar(@PathVariable Long id,
+                                                @Valid @RequestBody FinalizarEncuentroRequest solicitud) {
+        return finalizarEncuentroHandler.manejar(new FinalizarEncuentroCommand(id, solicitud.resultado()))
                 .map(encuentroAssembler::aRespuesta)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encuentro no encontrado"));
     }
