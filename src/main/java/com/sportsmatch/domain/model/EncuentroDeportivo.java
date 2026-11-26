@@ -94,7 +94,7 @@ public class EncuentroDeportivo {
         if (estado != EstadoEncuentro.ABIERTO) {
             throw new IllegalStateException("Las inscripciones deben estar ABIERTAS");
         }
-        if (participantes.contains(nombre)) {
+        if (participantes.stream().anyMatch(inscrito -> inscrito.equalsIgnoreCase(nombre))) {
             throw new IllegalArgumentException("El participante ya está inscrito");
         }
         if (participantes.size() >= cupoMaximo) {
@@ -108,6 +108,10 @@ public class EncuentroDeportivo {
     }
 
     public void cerrarInscripciones() {
+        if (participantes.size() < cupoMinimo) {
+            throw new IllegalStateException(
+                    "Se necesitan al menos " + cupoMinimo + " participantes para cerrar las inscripciones");
+        }
         cambiarEstado(EstadoEncuentro.ABIERTO, EstadoEncuentro.CERRADO, "cerrar inscripciones");
     }
 
