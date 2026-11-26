@@ -13,6 +13,7 @@ import com.sportsmatch.domain.model.EncuentroDeportivo;
 import com.sportsmatch.domain.model.EstadoEncuentro;
 import com.sportsmatch.application.ports.EncuentroDeportivoRepository;
 import com.sportsmatch.presentation.web.CrearEncuentroRequest;
+import com.sportsmatch.presentation.web.InscribirParticipanteRequest;
 import com.sportsmatch.presentation.web.EncuentroDeportivoController;
 import com.sportsmatch.presentation.web.assembler.EncuentroDeportivoAssembler;
 import com.sportsmatch.presentation.web.dto.EncuentroDeportivoResponse;
@@ -59,6 +60,9 @@ class SportsMatchApplicationTests {
         EncuentroDeportivo encuentro = crearEncuentro(1L);
 
         encuentro.abrirInscripciones();
+        for (int i = 1; i <= encuentro.getCupoMinimo(); i++) {
+            encuentro.inscribirParticipante("Participante " + i);
+        }
         encuentro.cerrarInscripciones();
         encuentro.confirmar();
         encuentro.iniciar();
@@ -115,6 +119,10 @@ class SportsMatchApplicationTests {
         );
         Long generatedId = respuesta.getBody().id();
         controller.abrirInscripciones(generatedId);
+        for (int i = 1; i <= 8; i++) {
+            controller.inscribirParticipante(generatedId,
+                    new InscribirParticipanteRequest("Participante " + i));
+        }
         controller.cerrarInscripciones(generatedId);
         controller.confirmar(generatedId);
         controller.iniciar(generatedId);
